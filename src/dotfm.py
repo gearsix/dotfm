@@ -90,7 +90,9 @@ def dotfm_install(dotfile):
                     if len(oca) > 0:
                         if oca[0] == 'o':
                             LOGGER.info('overwriting {} with {}'.format(dest, dotfile))
-                            os.system('ln -fvs {} {}'.format(dotfile, dest))
+                            LOGGER.info('backing up {}/{} -> {}/{}.bak'.format(dest, name, dest, name))
+                            os.system('mv {}/{} {}/{}.bak'.format(dest, name, dest, name))
+                            os.system('ln -vs {} {}'.format(dotfile, dest))
                         elif oca[0] == 'c':
                             LOGGER.info('comparing {} to {}/{}'.format(dotfile, dest, name))
                             os.system('diff {} {}/{}'.format(dotfile, dest, name))  # maybe use vimdiff
