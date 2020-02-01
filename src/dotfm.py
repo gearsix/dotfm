@@ -45,7 +45,6 @@ SOURCE_DOTFILES = [                     # dotfiles that need to be "source"-ed a
 #-----------
 def error_exit(message):
     LOGGER.error(message)
-    print('ERROR!\t| {}'.format(message))
     sys.exit()
 
 def parse_arguments():
@@ -74,9 +73,11 @@ def validate_dotfiledir_path(dirname, dotfiledir_path):
 def dotfm_install(dotfile):
     LOGGER.info('installing {}...'.format(dotfile))
     
+    found = False
     for dfl in DOTFILE_LOCATIONS:
         name = dfl[0]
         if os.path.basename(dotfile) == name:
+            found = True
             dest = os.path.abspath(os.path.dirname(dfl[1]))
             # make sure path exists
             if not os.path.exists(dest):
@@ -109,6 +110,10 @@ def dotfm_install(dotfile):
             # check if file needs to be sourced
             if name in SOURCE_DOTFILES:
                 os.system('source {}/{}'.format(dest, name))
+
+    # check for unrecognised dotfile
+    if found == False:
+        error_exit('dotfile basename not recognised ({})!\nmake sure that the dotfile name and location to install to exist in \"DOTFILE_LOCATIONS\" (see src/dotfm.py)'.format(os.path.basename(dotfile)))
 
 def dotfm_installall(dotfile_dir):
     LOGGER.info('installing all dotfiles in {}'.format(dotfile))

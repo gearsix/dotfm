@@ -8,7 +8,6 @@ none:
 
 install:
 	install -vpDm755 src/${NAME}.py ${DESTDIR}/${NAME}
-	
 
 uninstall:
 	rm -f ${DESTDIR}/${NAME}
