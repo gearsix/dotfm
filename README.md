@@ -18,16 +18,29 @@ It doesn't do anything complicated, but there's an array near the top of the fil
 ---
 
 ## usage
+Make sure to check DOTFILE_LOCATIONS first.
 
 ### cheatsheet
-Keep all your dotfiles in one directory (replace $DOTFILES with this directory name):
-- Install a dot file: `dotfm install $DOTFILES/.bashrc` (will **ln -s** _$DOTFILES/.bashrc_ -> _~/.bashrc_)
-- Uninstall a dot file: `dotfm remove .bashrc` (will **rm**_~/.bashrc_)
-- Edit a dot file: `dotfm edit .bashrc` (will open _.bashrc_ in _$EDITOR_ or _nano_)
-- Install all your dotfiles: `dotfm install-all $DOTFILES` (runs **dotfm install** on all files in _$DOTFILES_)
+**Note:** For the following example, DOTFILE_LOCATIONS has the following element:<br/>
+`['bashrc',  '/home/{}/.bashrc'.format(USER)]`
+
+- **Install** a dot file: `dotfm install $DOTFILES/bashrc` (will **ln -s** _$DOTFILES/bashrc_ -> _~/.bashrc_)
+- **Uninstall** a dot file: `dotfm remove bashrc` (will **rm** _~/.bashrc_)
+- **Edit** a dot file: `dotfm edit bashrc` (will open _.bashrc_ in _$EDITOR_ or _nano_)
+- **Install all** your dotfiles: `dotfm install-all $DOTFILES` (runs **dotfm install** on all files in _$DOTFILES_)
 
 ### details
-#### _dotfm install DOTFILE_
+#### DOTFILE_LOCATIONS
+_DOTFILE_LOCATIONS_ is a multi-dimensional array near the top of _src/dotfm.py_ (under _GLOBALS_). Think of this array as your _config file_.
+
+**It's important this array has the correct values for dotfm to work.**
+
+Each element of it is an array with _two values_: `['dotfile_name', 'dotfile_install_path']`
+
+- **dotfile_name** = Filename of the dotfile to install (should match the dotfile's name in your dotfile repo)
+- **dotfile_install_path** = Filepath of where the dotfile should install to (include filename, e.g. _`/home/{}/.bashrc'.format(USER)_)
+  
+#### _dotfm install DOTFILE\_NAME_
 _DOTFILE_ should be a **path** to the **dotfile to install**.
 
 If the file name of _DOTFILE_ is recognised, it will make sure the directory to install the dotfile to exists and then create a symbolic link at that location to _DOTFILE_.
@@ -39,20 +52,20 @@ If a file already exists at the install location, you'll get a prompt asking whe
 
 If _DOTFILE_ isn't found in _DOTFILE\_LOCATIONS_, then you'll have to manually add it. This is simple though, just go modify _src/dotfm.py_ and add an element to the array. Make sure to re-install too.
 
-#### _dotfm remove DOTFILE_
+#### _dotfm remove DOTFILE\_NAME_
 _DOTFILE_  should be the **name** of the **dotfile to remove**.
 
 **WARNING!** This will _rm_ the file named _DOTFILE_ from it's install location (found in _DOTFILE\_LOCATIONS_).
 
-#### _dotfm edit DOTFILE_
+#### _dotfm edit DOTFILE\_NAME_
 _DOTFILE_ should be the **name** of the **dotfile to edit**.
 
 This will open the _DOTFILE_ in the editor named in your environment variables as _EDITOR_. If _EDITOR_ is not available as an environment varialbe, then it will open it in _nano_.
 
 The file opened is located at the matching install location found in _DOTFILE\_LOCATIONS_.
 
-#### _dotfm install-all DOTFILE_
-_DOTFILE_ should be a **directory path** containing all the **dotfiles to install**
+#### _dotfm install-all DOTFILE\_DIR_
+_DOTFILE_DIR_ should be a **directory path** containing all the **dotfiles to install**
 
 This will recursively run _dotfm install DOTFILE_ on each file found in the specified directory.
 
@@ -78,10 +91,12 @@ optional arguments:
 ---
 
 ## installing dotfm
-Just run `sudo make install`
+- If you **do** plan on modifying _DOTFILE\_LOCATIONS_ after install _dotfm_ (recommended): `sudo make link`
+- If you **don't** plan on modifying _DOTFILE\_LOCATIONS_ after installing _dotfm_: `sudo make install`
 
 ### install location
-By default this will install the python script to _/usr/bin/dotfm_.
+By default this will install the python script to _/usr/bin/local/dotfm_.
+
 To change this, just modify _Makefile_ and change the value of _DESTDIR_ to your preferred install location.
 
 ---
