@@ -26,13 +26,14 @@ EDITOR = os.getenv('EDITOR') or 'nano'  # text editor to modify dotfiles with
 VERSION = 'v1.0.0'
 DOTFILE_LOCATIONS = [                   # recognised dotfile names & locations
     # filename          # location
-    ['.bashrc',         '/home/{}/'.format(USER)],
-    ['.profile',        '/home/{}/'.format(USER)],
-    ['.bash_profile',   '/home/{}/'.format(USER)],
-    ['.vim',            '/home/{}/'.format(USER)],
-    ['init.vim',        '/home/{}/.config/nvim'.format(USER)],
-    ['.tmux.conf',      '/home/{}/'.format(USER)],
-    ['user-dirs.dirs',  '/home/{}/.config/'.format(USER)],
+    ['bashrc',          '/home/{}/.bashrc'.format(USER)],
+    ['profile',         '/home/{}/.profile'.format(USER)],
+    ['bash_profile',    '/home/{}/.bash_profile'.format(USER)],
+    ['vimrc',           '/home/{}/.vimrc'.format(USER)],
+    ['init.vim',        '/home/{}/.config/nvim/init.vim'.format(USER)],
+    ['tmux.conf',       '/home/{}/.tmux.conf'.format(USER)],
+    ['user-dirs.dirs',  '/home/{}/.config/user-dirs.dirs'.format(USER)],
+    ['ssh_config',      '/home/{}/.ssh/config'.format(USER)]
 ]
 SOURCE_DOTFILES = [                     # dotfiles that need to be "source"-ed after editing
     '.bashrc',
@@ -78,25 +79,26 @@ def dotfm_install(dotfile):
         name = dfl[0]
         if os.path.basename(dotfile) == name:
             found = True
-            dest = os.path.abspath(os.path.dirname(dfl[1]))
+            dest = os.path.abspath(dfl[1])
             # make sure path exists
-            if not os.path.exists(dest):
+            if not os.path.exists(os.path.dirname(dest)):
                 os.system('mkdir -vp {}'.format(dest))
             # check if file already exists
-            if os.path.exists('{}/{}'.format(dest, name)):
-                LOGGER.warning('{}/{} already exists!'.format(dest, name))
+            if os.path.lexists(dest):
+                LOGGER.warning('{} already exists!'.format(dest))
                 oca = ''
                 while oca == '':
                     oca = input('[o]verwrite/[c]ompare/[a]bort? ')
                     if len(oca) > 0:
                         if oca[0] == 'o':
                             LOGGER.info('overwriting {} with {}'.format(dest, dotfile))
-                            LOGGER.info('backing up {}/{} -> {}/{}.bak'.format(dest, name, dest, name))
-                            os.system('mv {}/{} {}/{}.bak'.format(dest, name, dest, name))
-                            os.system('ln -vs {} {}'.format(dotfile, dest))
+                            LOGGER.info('backup {} -> {}.bak'.format(dest, dest))
+                            os.system('mv {} {}.bak'.format(dest, dest))
+                            LOGGER.info('linking {} -> {}'.format(dest, dotfile)) 
+                            os.system('ln -s {} {}'.format(dotfile, dest))
                         elif oca[0] == 'c':
-                            LOGGER.info('comparing {} to {}/{}'.format(dotfile, dest, name))
-                            os.system('diff {} {}/{}'.format(dotfile, dest, name))  # maybe use vimdiff
+                            LOGGER.info('comparing {} to {}'.format(dotfile, dest))
+                            os.system('diff -y {} {}'.format(dotfile, dest))  # maybe use vimdiff
                             oca = ''
                         elif oca[0] == 'a':
                             LOGGER.info('aborting install')
@@ -109,7 +111,7 @@ def dotfm_install(dotfile):
                 os.system('ln -vs {} {}'.format(dotfile, dest))
             # check if file needs to be sourced
             if name in SOURCE_DOTFILES:
-                os.system('source {}/{}'.format(dest, name))
+                os.system('source {}'.format(dest))
 
     # check for unrecognised dotfile
     if found == False:
