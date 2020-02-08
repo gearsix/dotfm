@@ -35,11 +35,6 @@ DOTFILE_LOCATIONS = [                   # recognised dotfile names & locations
     ['user-dirs.dirs',  '/home/{}/.config/user-dirs.dirs'.format(USER)],
     ['ssh_config',      '/home/{}/.ssh/config'.format(USER)]
 ]
-SOURCE_DOTFILES = [                     # dotfiles that need to be "source"-ed after editing
-    '.bashrc',
-    '.profile',
-    '.bash_profile',
-]
 
 #-----------
 # FUNCTIONS
@@ -109,13 +104,13 @@ def dotfm_install(dotfile):
                         oca = ''
             else:
                 os.system('ln -vs {} {}'.format(dotfile, dest))
-            # check if file needs to be sourced
-            if name in SOURCE_DOTFILES:
-                os.system('source {}'.format(dest))
+            break
 
     # check for unrecognised dotfile
     if found == False:
         error_exit('dotfile basename not recognised ({})!\nmake sure that the dotfile name and location to install to exist in \"DOTFILE_LOCATIONS\" (see src/dotfm.py)'.format(os.path.basename(dotfile)))
+    else:
+        LOGGER.info('success - you might need to re-open the terminal to see changes take effect')
 
 def dotfm_installall(dotfile_dir):
     LOGGER.info('installing all dotfiles in {}'.format(dotfile))
@@ -135,7 +130,7 @@ def dotfm_remove(dotfile):
     for dfl in DOTFILE_LOCATIONS:
         name = dfl[0]
         if os.path.basename(dotfile) == name:
-            target = '{}/{}'.format(os.path.abspath(os.path.dirname(dfl[1])), name)
+            target = '{}'.format(os.path.abspath(dfl[1]), name)
             os.system('rm -v {}'.format(target))
 
 def dotfm_edit(dotfile):
@@ -145,8 +140,9 @@ def dotfm_edit(dotfile):
     for dfl in DOTFILE_LOCATIONS:
         name = dfl[0]
         if os.path.basename(dotfile) == name:
-            target = '{}/{}'.format(os.path.abspath(os.path.dirname(dfl[1])), name)
+            target = '{}'.format(os.path.abspath(dfl[1]))
             os.system('{} {}'.format(EDITOR, target))
+            LOGGER.info('success - you might need to re-open the terminal to see changes take effect')
 
     if target == '':
         error_exit('could not find {} in DOTFILE_LOCATIONS'.format(os.path.basename(dotfile)))
