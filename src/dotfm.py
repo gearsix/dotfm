@@ -30,8 +30,9 @@ DOTFILE_LOCATIONS = [                   # recognised dotfile names & locations
     ['profile',         '/home/{}/.profile'.format(USER)],
     ['bash_profile',    '/home/{}/.bash_profile'.format(USER)],
     ['vimrc',           '/home/{}/.vimrc'.format(USER)],
-    ['init.vim',        '/home/{}/.config/nvim/init.vim'.format(USER)],
+    ['nvimrc',          '/home/{}/.config/nvim/init.vim'.format(USER)],
     ['tmux.conf',       '/home/{}/.tmux.conf'.format(USER)],
+    ['rc.conf',         '/home/{}/.config/ranger/rc.conf'.format(USER)],
     ['user-dirs.dirs',  '/home/{}/.config/user-dirs.dirs'.format(USER)],
     ['ssh_config',      '/home/{}/.ssh/config'.format(USER)]
 ]
@@ -45,7 +46,7 @@ def error_exit(message):
 
 def parse_arguments():
     global ARGS
-    valid_commands = ['install', 'remove', 'edit', 'install-all']
+    valid_commands = ['install', 'remove', 'edit', 'install-all', 'list']
     
     parser = argparse.ArgumentParser(description='a simple tool to help you manage your dot files, see \"man dotfm\" for more')
     parser.add_argument('cmd', metavar='COMMAND', choices=valid_commands, help='the dotfm COMMAND to execute: {}'.format(valid_commands))
@@ -147,6 +148,15 @@ def dotfm_edit(dotfile):
     if target == '':
         error_exit('could not find {} in DOTFILE_LOCATIONS'.format(os.path.basename(dotfile)))
 
+def dotfm_list(dotfile):
+    LOGGER.info('listing dotfm files')
+
+    for dfl in DOTFILE_LOCATIONS:
+        if dotfile == 'all':
+            LOGGER.info('{} -> {}'.format(dfl[0].ljust(15), dfl[1]))
+        elif dotfile == dfl[0]:
+            LOGGER.info('{} -> {}'.format(dfl[0].ljust(15), dfl[1]))
+
 #------
 # MAIN
 #------
@@ -163,7 +173,6 @@ if __name__ == '__main__':
         logging.basicConfig(level=logging.INFO, format='%(lineno)-4s {} | %(asctime)s | %(levelname)-7s | %(message)s'.format(NAME))
         LOGGER = logging.getLogger(__name__)
 
-
     if command == 'install':
         validate_dotfile_path(dotfile, os.path.abspath(dotfile))
         dotfm_install(os.path.abspath(dotfile))
@@ -175,3 +184,6 @@ if __name__ == '__main__':
     elif command == 'install-all':
         validate_dotfiledir_path(dotfile, os.path.abspath(dotfile))
         dotfm_installall(os.path.abspath(dotfile))
+    elif command == 'list':
+        dotfm_list(dotfile)
+
