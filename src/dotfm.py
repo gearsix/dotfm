@@ -23,18 +23,18 @@ NAME = os.path.basename(__file__)       # program name
 USER = os.getenv('USER')                # $USER calling dotfm
 ARGS = sys.argv                         # parsed arguments
 EDITOR = os.getenv('EDITOR') or 'nano'  # text editor to modify dotfiles with
-VERSION = 'v1.0.0'
-DOTFILE_LOCATIONS = [                   # recognised dotfile names & locations
-    # filename          # location
-    ['bashrc',          '/home/{}/.bashrc'.format(USER)],
-    ['profile',         '/home/{}/.profile'.format(USER)],
-    ['bash_profile',    '/home/{}/.bash_profile'.format(USER)],
-    ['vimrc',           '/home/{}/.vimrc'.format(USER)],
-    ['nvimrc',          '/home/{}/.config/nvim/init.vim'.format(USER)],
-    ['tmux.conf',       '/home/{}/.tmux.conf'.format(USER)],
-    ['rc.conf',         '/home/{}/.config/ranger/rc.conf'.format(USER)],
-    ['user-dirs.dirs',  '/home/{}/.config/user-dirs.dirs'.format(USER)],
-    ['ssh_config',      '/home/{}/.ssh/config'.format(USER)]
+VERSION = 'v1.0.2'
+DOTFILE_LOCATIONS = [   # recognised dotfile names & locations
+    # filename aliases                  # location
+    [['bashrc', '.bashrc'],                 '/home/{}/.bashrc'.format(USER)],
+    [['profile', '.profile'],               '/home/{}/.profile'.format(USER)],
+    [['bash_profile', '.bash_profile'],     '/home/{}/.bash_profile'.format(USER)],
+    [['vimrc'],                             '/home/{}/.vimrc'.format(USER)],
+    [['nvimrc'],                            '/home/{}/.config/nvim/init.vim'.format(USER)],
+    [['tmux.conf', 'tmux.cfg'],             '/home/{}/.tmux.conf'.format(USER)],
+    [['rc.conf', 'ranger.cfg'],             '/home/{}/.config/ranger/rc.conf'.format(USER)],
+    [['user-dirs.dirs', 'xdg-user-dirs'],   '/home/{}/.config/user-dirs.dirs'.format(USER)],
+    [['ssh_config', 'ssh.cfg'],             '/home/{}/.ssh/config'.format(USER)]
 ]
 
 #-----------
@@ -72,40 +72,42 @@ def dotfm_install(dotfile):
     
     found = False
     for dfl in DOTFILE_LOCATIONS:
-        name = dfl[0]
-        if os.path.basename(dotfile) == name:
-            found = True
-            dest = os.path.abspath(dfl[1])
-            # make sure path exists
-            if not os.path.exists(os.path.dirname(dest)):
-                os.system('mkdir -vp {}'.format(dest))
-            # check if file already exists
-            if os.path.lexists(dest):
-                LOGGER.warning('{} already exists!'.format(dest))
-                oca = ''
-                while oca == '':
-                    oca = input('[o]verwrite/[c]ompare/[a]bort? ')
-                    if len(oca) > 0:
-                        if oca[0] == 'o':
-                            LOGGER.info('overwriting {} with {}'.format(dest, dotfile))
-                            LOGGER.info('backup {} -> {}.bak'.format(dest, dest))
-                            os.system('mv {} {}.bak'.format(dest, dest))
-                            LOGGER.info('linking {} -> {}'.format(dest, dotfile)) 
-                            os.system('ln -s {} {}'.format(dotfile, dest))
-                        elif oca[0] == 'c':
-                            LOGGER.info('comparing {} to {}'.format(dotfile, dest))
-                            os.system('diff -y {} {}'.format(dotfile, dest))  # maybe use vimdiff
-                            oca = ''
-                        elif oca[0] == 'a':
-                            LOGGER.info('aborting install')
-                            sys.exit()
+        if found == True:
+            break
+        for name in dfl[0]:
+            if os.path.basename(dotfile) == name:
+                found = True
+                dest = os.path.abspath(dfl[1])
+                # make sure path exists
+                if not os.path.exists(os.path.dirname(dest)):
+                    os.system('mkdir -vp {}'.format(dest))
+                # check if file already exists
+                if os.path.lexists(dest):
+                    LOGGER.warning('{} already exists!'.format(dest))
+                    oca = ''
+                    while oca == '':
+                        oca = input('[o]verwrite/[c]ompare/[a]bort? ')
+                        if len(oca) > 0:
+                            if oca[0] == 'o':
+                                LOGGER.info('overwriting {} with {}'.format(dest, dotfile))
+                                LOGGER.info('backup {} -> {}.bak'.format(dest, dest))
+                                os.system('mv {} {}.bak'.format(dest, dest))
+                                LOGGER.info('linking {} -> {}'.format(dest, dotfile)) 
+                                os.system('ln -s {} {}'.format(dotfile, dest))
+                            elif oca[0] == 'c':
+                                LOGGER.info('comparing {} to {}'.format(dotfile, dest))
+                                os.system('diff -y {} {}'.format(dotfile, dest))  # maybe use vimdiff
+                                oca = ''
+                            elif oca[0] == 'a':
+                                LOGGER.info('aborting install')
+                                sys.exit()
+                            else:
+                                oca = ''
                         else:
                             oca = ''
-                    else:
-                        oca = ''
-            else:
-                os.system('ln -vs {} {}'.format(dotfile, dest))
-            break
+                else:
+                    os.system('ln -vs {} {}'.format(dotfile, dest))
+                break
 
     # check for unrecognised dotfile
     if found == False:
@@ -114,12 +116,12 @@ def dotfm_install(dotfile):
         LOGGER.info('success - you might need to re-open the terminal to see changes take effect')
 
 def dotfm_installall(dotfile_dir):
-    LOGGER.info('installing all dotfiles in {}'.format(dotfile))
+    LOGGER.info('installing all dotfiles in {}'.format(dotfile_dir))
 
     for df in os.listdir(os.path.abspath(dotfile_dir)):
         df = os.path.abspath('{}/{}'.format(dotfile_dir, df))
-        LOGGER.debug('found {}'.format(df))
         if os.path.isfile(df):
+            LOGGER.debug('found {}, installing...'.format(df))
             dotfm_install(df)
         elif os.path.isdir(df):
             LOGGER.debug('found dir {}')
@@ -128,22 +130,32 @@ def dotfm_installall(dotfile_dir):
 def dotfm_remove(dotfile):
     LOGGER.info('removing {}...'.format(dotfile))
 
+    found = False
     for dfl in DOTFILE_LOCATIONS:
-        name = dfl[0]
-        if os.path.basename(dotfile) == name:
-            target = '{}'.format(os.path.abspath(dfl[1]), name)
-            os.system('rm -v {}'.format(target))
+        if found == True:
+            break
+        for name in dfl[0]:
+            if os.path.basename(dotfile) == name:
+                found = True
+                target = '{}'.format(os.path.abspath(dfl[1]), name)
+                os.system('rm -v {}'.format(target))
+                break
 
 def dotfm_edit(dotfile):
     LOGGER.info('editing {}...'.format(dotfile))
 
+    found = False
     target = ''
     for dfl in DOTFILE_LOCATIONS:
-        name = dfl[0]
-        if os.path.basename(dotfile) == name:
-            target = '{}'.format(os.path.abspath(dfl[1]))
-            os.system('{} {}'.format(EDITOR, target))
-            LOGGER.info('success - you might need to re-open the terminal to see changes take effect')
+        if found == True:
+            break
+        for name in dfl[0]:
+            if os.path.basename(dotfile) == name:
+                found = True
+                target = '{}'.format(os.path.abspath(dfl[1]))
+                os.system('{} {}'.format(EDITOR, target))
+                LOGGER.info('success - you might need to re-open the terminal to see changes take effect')
+                break
 
     if target == '':
         error_exit('could not find {} in DOTFILE_LOCATIONS'.format(os.path.basename(dotfile)))
@@ -151,11 +163,22 @@ def dotfm_edit(dotfile):
 def dotfm_list(dotfile):
     LOGGER.info('listing dotfm files')
 
+    found = False
     for dfl in DOTFILE_LOCATIONS:
+        # list all dotfile locations
         if dotfile == 'all':
-            LOGGER.info('{} -> {}'.format(dfl[0].ljust(15), dfl[1]))
-        elif dotfile == dfl[0]:
-            LOGGER.info('{} -> {}'.format(dfl[0].ljust(15), dfl[1]))
+            dfln = '"' + '", "'.join(dfl[0]) + '"'
+            LOGGER.info('\t{} -> {}'.format(dfln.ljust(35), dfl[1]))#'", "'.join(dfl[0]).ljust(40), dfl[1]))
+        # list specific dotfile location
+        else:
+            if found == True:
+                break
+            for name in dfl[0]:
+                if dotfile == name:
+                    found = True
+                    dfln = '"' + '", "'.join(dfl[0]) + '"'
+                    LOGGER.info('\t{} -> {}'.format(dfln.ljust(35), dfl[1]))
+                    break
 
 #------
 # MAIN
