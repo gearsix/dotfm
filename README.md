@@ -123,6 +123,7 @@ _(W) = Will do; (S) = Should do; (C) = Could do;_
 - [ ] Allow a remote git repo to be used for calling dotfile source (W)
 - [ ] Add a double-check to _dotfm remove_(W)
 - [ ] Follow symlinks to list source file locations too (?)
+- [ ] Move the details section above into man pages (with pdf conversion) (S)
 
 Commands:
 - [x] <s>List dotfile locations (W)</s>
