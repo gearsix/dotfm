@@ -122,8 +122,15 @@ def dotfm_installall(dotfile_dir):
         df = os.path.abspath('{}/{}'.format(dotfile_dir, df))
         if os.path.isfile(df):
             LOGGER.debug('found {}, installing...'.format(df))
-            dotfm_install(df)
-        elif os.path.isdir(df):
+            found = False
+            for dfl in DOTFILE_LOCATIONS:
+                if os.path.basename(df) in dfl[0]:
+                    found = True
+            if found:
+                dotfm_install(df)
+            else:
+                LOGGER.info('found {}, skipping...'.format(df))
+        elif os.path.isdir(df) and os.path.basename(df) != ".git":
             LOGGER.debug('found dir {}')
             dotfm_installall(df)
 
