@@ -128,6 +128,7 @@ _(W) = Will do; (S) = Should do; (C) = Could do;_
 Commands:
 - [x] <s>List dotfile locations (W)</s>
 - [ ] Create a dotfile (W)
+- [ ] Update dotfile source location (W)
 
 ---
 
