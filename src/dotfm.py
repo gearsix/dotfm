@@ -23,18 +23,20 @@ NAME = os.path.basename(__file__)       # program name
 USER = os.getenv('USER')                # $USER calling dotfm
 ARGS = sys.argv                         # parsed arguments
 EDITOR = os.getenv('EDITOR') or 'nano'  # text editor to modify dotfiles with
-VERSION = 'v1.0.2'
+VERSION = 'v1.0.3'
 DOTFILE_LOCATIONS = [   # recognised dotfile names & locations
     # filename aliases                  # location
-    [['bashrc', '.bashrc'],                 '/home/{}/.bashrc'.format(USER)],
-    [['profile', '.profile'],               '/home/{}/.profile'.format(USER)],
-    [['bash_profile', '.bash_profile'],     '/home/{}/.bash_profile'.format(USER)],
-    [['vimrc'],                             '/home/{}/.vimrc'.format(USER)],
-    [['nvimrc'],                            '/home/{}/.config/nvim/init.vim'.format(USER)],
-    [['tmux.conf', 'tmux.cfg'],             '/home/{}/.tmux.conf'.format(USER)],
-    [['rc.conf', 'ranger.cfg'],             '/home/{}/.config/ranger/rc.conf'.format(USER)],
+    [['.bashrc', 'bashrc'],                 '/home/{}/.bashrc'.format(USER)],
+    [['.profile', 'profile'],               '/home/{}/.profile'.format(USER)],
+    [['.bash_profile', 'bash_profile'],     '/home/{}/.bash_profile'.format(USER)],
+    [['.vimrc', 'vimrc'],                   '/home/{}/.vimrc'.format(USER)],
+    [['init.vim', 'nvimrc'],                '/home/{}/.config/nvim/init.vim'.format(USER)],
+    [['tmux.conf', 'tmux'],                 '/home/{}/.tmux.conf'.format(USER)],
+    [['rc.conf', 'ranger'],                 '/home/{}/.config/ranger/rc.conf'.format(USER)],
     [['user-dirs.dirs', 'xdg-user-dirs'],   '/home/{}/.config/user-dirs.dirs'.format(USER)],
-    [['ssh_config', 'ssh.cfg'],             '/home/{}/.ssh/config'.format(USER)]
+    [['ssh_config'],                        '/home/{}/.ssh/config'.format(USER)],
+    [['.Xresources', 'Xresources'],         '/home/{}/.Xresources'.format(USER)],
+    [['sfeedrc'],                           '/home/{}/.sfeed/sfeedrc'.format(USER)]
 ]
 
 #-----------
@@ -153,6 +155,7 @@ def dotfm_edit(dotfile):
             if os.path.basename(dotfile) == name:
                 found = True
                 target = '{}'.format(os.path.abspath(dfl[1]))
+                LOGGER.info('found {}'.format(target))
                 os.system('{} {}'.format(EDITOR, target))
                 LOGGER.info('success - you might need to re-open the terminal to see changes take effect')
                 break
@@ -203,7 +206,8 @@ if __name__ == '__main__':
         validate_dotfile_path(dotfile)
         dotfm_remove(os.path.abspath(dotfile))
     elif command == 'edit':
-        dotfm_edit(os.path.abspath(dotfile))
+        # dotfm_edit(os.path.abspath(dotfile))
+        dotfm_edit(dotfile)
     elif command == 'install-all':
         validate_dotfiledir_path(dotfile, os.path.abspath(dotfile))
         dotfm_installall(os.path.abspath(dotfile))
