@@ -42,6 +42,10 @@ DOTFILE_LOCATIONS = [   # recognised dotfile names & locations
 #-----------
 # FUNCTIONS
 #-----------
+def log_info(info):
+    if ARGS.quiet == False:
+        LOGGER.info(info)
+
 def error_exit(message):
     LOGGER.error(message)
     sys.exit()
@@ -55,6 +59,7 @@ def parse_arguments():
     parser.add_argument('dotfile', metavar='DOTFILE', help='name of the dotfile dotfm will execute COMMAND on, for \"install\" this must be a path to the dotfile to install')
     parser.add_argument('-d', '--debug', action='store_true', help='display debug logs')
     parser.add_argument('-v', '--version', action='version', version='%(prog)s {}'.format(VERSION))
+    parser.add_argument('-q', '--quiet', action='store_true', help='tell dotfm to shutup')
     ARGS = parser.parse_args()
 
 def validate_dotfile_path(dotfile, dotfile_path):
@@ -70,7 +75,7 @@ def validate_dotfiledir_path(dirname, dotfiledir_path):
         error_exit('DOTFILE DIRECTORY \"{}\" ({}) is not a directory'.format(dotfile, dotfiledir_path))
 
 def dotfm_install(dotfile):
-    LOGGER.info('installing {}...'.format(dotfile))
+    log_info('installing {}...'.format(dotfile))
     
     found = False
     for dfl in DOTFILE_LOCATIONS:
@@ -91,17 +96,17 @@ def dotfm_install(dotfile):
                         oca = input('[o]verwrite/[c]ompare/[a]bort? ')
                         if len(oca) > 0:
                             if oca[0] == 'o':
-                                LOGGER.info('overwriting {} with {}'.format(dest, dotfile))
-                                LOGGER.info('backup {} -> {}.bak'.format(dest, dest))
+                                log_info('overwriting {} with {}'.format(dest, dotfile))
+                                log_info('backup {} -> {}.bak'.format(dest, dest))
                                 os.system('mv {} {}.bak'.format(dest, dest))
-                                LOGGER.info('linking {} -> {}'.format(dest, dotfile)) 
+                                log_info('linking {} -> {}'.format(dest, dotfile)) 
                                 os.system('ln -s {} {}'.format(dotfile, dest))
                             elif oca[0] == 'c':
-                                LOGGER.info('comparing {} to {}'.format(dotfile, dest))
+                                log_info('comparing {} to {}'.format(dotfile, dest))
                                 os.system('diff -y {} {}'.format(dotfile, dest))  # maybe use vimdiff
                                 oca = ''
                             elif oca[0] == 'a':
-                                LOGGER.info('aborting install')
+                                log_info('aborting install')
                                 sys.exit()
                             else:
                                 oca = ''
@@ -115,10 +120,10 @@ def dotfm_install(dotfile):
     if found == False:
         error_exit('dotfile basename not recognised ({})!\nmake sure that the dotfile name and location to install to exist in \"DOTFILE_LOCATIONS\" (see src/dotfm.py)'.format(os.path.basename(dotfile)))
     else:
-        LOGGER.info('success - you might need to re-open the terminal to see changes take effect')
+        log_info('success - you might need to re-open the terminal to see changes take effect')
 
 def dotfm_installall(dotfile_dir):
-    LOGGER.info('installing all dotfiles in {}'.format(dotfile_dir))
+    log_info('installing all dotfiles in {}'.format(dotfile_dir))
 
     for df in os.listdir(os.path.abspath(dotfile_dir)):
         df = os.path.abspath('{}/{}'.format(dotfile_dir, df))
@@ -130,7 +135,7 @@ def dotfm_installall(dotfile_dir):
             dotfm_installall(df)
 
 def dotfm_remove(dotfile):
-    LOGGER.info('removing {}...'.format(dotfile))
+    log_info('removing {}...'.format(dotfile))
 
     found = False
     for dfl in DOTFILE_LOCATIONS:
@@ -144,7 +149,7 @@ def dotfm_remove(dotfile):
                 break
 
 def dotfm_edit(dotfile):
-    LOGGER.info('editing {}...'.format(dotfile))
+    log_info('editing {}...'.format(dotfile))
 
     found = False
     target = ''
@@ -155,23 +160,26 @@ def dotfm_edit(dotfile):
             if os.path.basename(dotfile) == name:
                 found = True
                 target = '{}'.format(os.path.abspath(dfl[1]))
-                LOGGER.info('found {}'.format(target))
+                log_info('found {}'.format(target))
                 os.system('{} {}'.format(EDITOR, target))
-                LOGGER.info('success - you might need to re-open the terminal to see changes take effect')
+                log_info('success - you might need to re-open the terminal to see changes take effect')
                 break
 
     if target == '':
         error_exit('could not find {} in DOTFILE_LOCATIONS'.format(os.path.basename(dotfile)))
 
 def dotfm_list(dotfile):
-    LOGGER.info('listing dotfm files')
+    log_info('listing dotfm files')
 
     found = False
     for dfl in DOTFILE_LOCATIONS:
         # list all dotfile locations
         if dotfile == 'all':
             dfln = '"' + '", "'.join(dfl[0]) + '"'
-            LOGGER.info('\t{} -> {}'.format(dfln.ljust(35), dfl[1]))#'", "'.join(dfl[0]).ljust(40), dfl[1]))
+            if ARGS.quiet == True:
+                LOGGER.info(dfl[1])
+            else:
+                log_info('\t{} -> {}'.format(dfln.ljust(35), dfl[1]))#'", "'.join(dfl[0]).ljust(40), dfl[1]))
         # list specific dotfile location
         else:
             if found == True:
@@ -180,7 +188,10 @@ def dotfm_list(dotfile):
                 if dotfile == name:
                     found = True
                     dfln = '"' + '", "'.join(dfl[0]) + '"'
-                    LOGGER.info('\t{} -> {}'.format(dfln.ljust(35), dfl[1]))
+                    if ARGS.quiet == True:
+                        LOGGER.info(dfl[1])
+                    else:
+                        log_info('\t{} -> {}'.format(dfln.ljust(35), dfl[1]))
                     break
 
 #------
@@ -194,7 +205,9 @@ if __name__ == '__main__':
     if ARGS.debug == True:
         logging.basicConfig(level=logging.DEBUG, format='%(lineno)-4s {} | %(asctime)s | %(levelname)-7s | %(message)s'.format(NAME))
         LOGGER = logging.getLogger(__name__)
-        LOGGER.debug('displaying debug logs')
+    elif ARGS.quiet == True:
+        logging.basicConfig(level=logging.INFO, format='%(message)s')
+        LOGGER = logging.getLogger(__name__)
     else:
         logging.basicConfig(level=logging.INFO, format='%(lineno)-4s {} | %(asctime)s | %(levelname)-7s | %(message)s'.format(NAME))
         LOGGER = logging.getLogger(__name__)
