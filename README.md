@@ -113,17 +113,25 @@ Just run `sudo make uninstall` while in the same directory as the _Makefile_.
 ## TODO
 Development on this project isn't a massive priority for me. Currently things are getting added as I need them.
 
-- Change `DOTFILE_LOCATIONS` to use an external config
-- Allow a remote git repo to be used for calling dotfile source
-- Add a double-check to _dotfm remove_
-- Follow symlinks to list source file locations too
-- Commands:
-  - <s>List dotfile locations</s>
-  - Create a dotfile
+**Legend**
+
+_[x] = done; [~] = in-progress; [-] = won't do; [ ] = not started;_
+
+_(W) = Will do; (S) = Should do; (C) = Could do;_
+
+- [ ] Change `DOTFILE\_LOCATIONS` to use an external config (C)
+- [ ] Allow a remote git repo to be used for calling dotfile source (W)
+- [ ] Add a double-check to _dotfm remove_(W)
+- [ ] Follow symlinks to list source file locations too (?)
+- [ ] Move the details section above into man pages (with pdf conversion) (S)
+
+Commands:
+- [x] <s>List dotfile locations (W)</s>
+- [ ] Create a dotfile (W)
+- [ ] Update dotfile source location (W)
 
 ---
 
 ## authors
 - GeaRSiX <gearsix@tuta.io>
 
----
