@@ -1,0 +1,16 @@
+# CHANGELOG
+
+## v1.0.3
+
+- added "-q", "--quiet" argument, using it reduces printed logs
+  "dotfm list" will still print the file location (one line each), e.g.:
+	
+	/home/gearsix/.bashrc
+	/home/gearsix/.profile
+	/home/gearsix/.bash_profile
+	...
+
+- added CHANGELOG
+- updated LICENSE to BSD 4-Clause
+- added sfeed to DOTFILE_LOCATIONS
+- added TODO items
