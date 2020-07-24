@@ -13,6 +13,7 @@
 #---------
 import sys
 import os
+import csv
 import logging
 import argparse
 
@@ -25,7 +26,7 @@ ARGS = sys.argv                         # parsed arguments
 EDITOR = os.getenv('EDITOR') or 'nano'  # text editor to modify dotfiles with
 VERSION = 'v1.0.2'
 DOTFM_CSV_FILE = '/home/{}/.config/dotfm/dotfm.csv'.format(USER)
-DOTFM_CSV_DEFAULTS = [ # dotfiles that dotfm knows by default
+KNOWN_DOTFILES = [ # dotfiles that dotfm knows by default
     # location                                          # aliases
     ['/home/{}/.config/dotfm/dotfm.csv'.format(USER),   'dotfm.csv', 'dotfm'],
     ['/home/{}/.bashrc'.format(USER),                   '.bashrc', 'bashrc'],
@@ -92,19 +93,19 @@ def dotfm_init():
         else: # use default
             location = DOTFM_CSV_FILE
 
-        # create dotfm.csv at location
+        # write dotfm dotfile to csv
         dotfm_csv = open(location, "w")
-        dotfm_csv.write('dotfile location, aliases...')
-        for default_location in DOTFM_CSV_DEFAULTS:
-            location = default_location[0]
-            for i, alias in enumerate(default_location):
-                if i == 0:
-                    continue # skip index 0 (already written)
-                location += ',{}'.format(alias)
+        dfl = KNOWN_DOTFILES[0][0]
+        for i, alias in enumerate(KNOWN_DOTFILES[0]):
+            if i == 0:
+                continue # 0 = the location (not alias)
+            dfl += ',{}'.format(alias)
+        dotfm_csv.write(dfl+'\n')
         dotfm_csv.close()
 
         # create dotfm.csv symbolic link
-        os.system('ln -sv {} {}'.format(location, DOTFM_CSV_FILE))
+        os.system('mkdir -p {}'.format(os.path.dirname(DOTFM_CSV_FILE)))
+        os.system('ln -fsv {} {}'.format(os.path.abspath(location), DOTFM_CSV_FILE))
 
 def dotfm_install(dotfile):
     LOGGER.info('installing {}...'.format(dotfile))
@@ -210,20 +211,23 @@ def dotfm_list(dotfile):
     LOGGER.info('listing dotfm files')
 
     found = False
-    for dfl in DOTFILE_LOCATIONS:
+    dotfm_csv = open(DOTFM_CSV_FILE, "r")
+    dotfm_csv_reader = csv.reader(dotfm_csv)
+    LOGGER.info('\t{} Location'.format('Aliases...'.ljust(35)))
+    for dfl in dotfm_csv_reader:
         # list all dotfile locations
         if dotfile == 'all':
-            dfln = '"' + '", "'.join(dfl[0]) + '"'
-            LOGGER.info('\t{} -> {}'.format(dfln.ljust(35), dfl[1]))#'", "'.join(dfl[0]).ljust(40), dfl[1]))
+            dfln = '"' + '", "'.join(dfl[1:]) + '"'
+            LOGGER.info('\t{} {} -> {}'.format(dfln.ljust(35), dfl[0], os.path.realpath(dfl[0])))
         # list specific dotfile location
         else:
             if found == True:
                 break
-            for name in dfl[0]:
+            for name in dfl:
                 if dotfile == name:
                     found = True
-                    dfln = '"' + '", "'.join(dfl[0]) + '"'
-                    LOGGER.info('\t{} -> {}'.format(dfln.ljust(35), dfl[1]))
+                    dfln = '"' + '", "'.join(dfl[1:]) + '"'
+                    LOGGER.info('\t{} {} -> {}'.format(dfln.ljust(35), dfl[0], os.path.realpath(dfl[0])))
                     break
 
 #------
