@@ -5,7 +5,7 @@
 #==========================
 # authors: gearsix
 # created: 2020-01-15
-# updated: 2020-01-23
+# updated: 2020-07-20
 # notes:
 
 #---------
@@ -24,17 +24,19 @@ USER = os.getenv('USER')                # $USER calling dotfm
 ARGS = sys.argv                         # parsed arguments
 EDITOR = os.getenv('EDITOR') or 'nano'  # text editor to modify dotfiles with
 VERSION = 'v1.0.2'
-DOTFILE_LOCATIONS = [   # recognised dotfile names & locations
-    # filename aliases                  # location
-    [['bashrc', '.bashrc'],                 '/home/{}/.bashrc'.format(USER)],
-    [['profile', '.profile'],               '/home/{}/.profile'.format(USER)],
-    [['bash_profile', '.bash_profile'],     '/home/{}/.bash_profile'.format(USER)],
-    [['vimrc'],                             '/home/{}/.vimrc'.format(USER)],
-    [['nvimrc'],                            '/home/{}/.config/nvim/init.vim'.format(USER)],
-    [['tmux.conf', 'tmux.cfg'],             '/home/{}/.tmux.conf'.format(USER)],
-    [['rc.conf', 'ranger.cfg'],             '/home/{}/.config/ranger/rc.conf'.format(USER)],
-    [['user-dirs.dirs', 'xdg-user-dirs'],   '/home/{}/.config/user-dirs.dirs'.format(USER)],
-    [['ssh_config', 'ssh.cfg'],             '/home/{}/.ssh/config'.format(USER)]
+DOTFM_CSV_FILE = '/home/{}/.config/dotfm/dotfm.csv'.format(USER)
+DOTFM_CSV_DEFAULTS = [ # dotfiles that dotfm knows by default
+    # location                                          # aliases
+    ['/home/{}/.config/dotfm/dotfm.csv'.format(USER),   'dotfm.csv', 'dotfm'],
+    ['/home/{}/.bashrc'.format(USER),                   '.bashrc', 'bashrc'],
+    ['/home/{}/.profile'.format(USER),                  '.profile', 'profile'],
+    ['/home/{}/.bash_profile'.format(USER),             '.bash_profile', 'bash_profile'],
+    ['/home/{}/.ssh/config'.format(USER),               'ssh_config'],
+    ['/home/{}/.vimrc'.format(USER),                    '.vimrc', 'vimrc'],
+    ['/home/{}/.config/nvim/init.vim'.format(USER),     'init.vim', 'nvimrc'],
+    ['/home/{}/.tmux.conf'.format(USER),                'tmux.conf', 'tmux.conf'],
+    ['/home/{}/.config/rc.conf'.format(USER),           'rc.conf', 'ranger.conf'],
+    ['/home/{}/.config/user-dirs.dirs'.format(USER),    'user-dirs.dirs', 'xdg-user-dirs'],
 ]
 
 #-----------
@@ -48,9 +50,9 @@ def parse_arguments():
     global ARGS
     valid_commands = ['install', 'remove', 'edit', 'install-all', 'list']
     
-    parser = argparse.ArgumentParser(description='a simple tool to help you manage your dot files')
+    parser = argparse.ArgumentParser(description='a simple tool to help you manage your dot files, see \"man dotfm\" for more.')
     parser.add_argument('cmd', metavar='COMMAND', choices=valid_commands, help='the dotfm COMMAND to execute: {}'.format(valid_commands))
-    parser.add_argument('dotfile', metavar='DOTFILE', help='name of the dotfile dotfm will execute COMMAND on, for \"install\" this must be a path to the dotfile to install')
+    parser.add_argument('dotfile', metavar='DOTFILE', help='the target dotfile to execute COMMAND on')
     parser.add_argument('-d', '--debug', action='store_true', help='display debug logs')
     parser.add_argument('-v', '--version', action='version', version='%(prog)s {}'.format(VERSION))
     ARGS = parser.parse_args()
@@ -66,6 +68,43 @@ def validate_dotfiledir_path(dirname, dotfiledir_path):
         error_exist('DOTFILE DIRECTORY \"{}\" ({}) not found'.format(dotfile, dotfiledir_path))
     if not os.path.isdir(dotfiledir_path):
         error_exit('DOTFILE DIRECTORY \"{}\" ({}) is not a directory'.format(dotfile, dotfiledir_path))
+
+def dotfm_init():
+    LOGGER.info('loading dotfile locations...')
+
+    if not os.path.exists(DOTFM_CSV_FILE):
+        LOGGER.warning('dotfile_locations not found')
+
+        # get location to create dotfm.csv at
+        location = input('where would you like to store the dotfm config (default: {})? '.format(DOTFM_CSV_FILE))
+        if len(location) > 0:
+            if os.path.exists(location):
+                yn = ''
+                while yn == '':
+                    yn = input('{} already exists, overwrite (y/n)? '.format(location))
+                    if yn[0] == 'y':
+                        LOGGER.info('overwriting {}'.format(location))
+                    elif yn[0] == 'n':
+                        LOGGER.info('{} already exists, using default location ({})'.format(DOTFILE_LOCATION))
+                        location = DOTFM_CSV_FILE
+                    else:
+                        yn = ''
+        else: # use default
+            location = DOTFM_CSV_FILE
+
+        # create dotfm.csv at location
+        dotfm_csv = open(location, "w")
+        dotfm_csv.write('dotfile location, aliases...')
+        for default_location in DOTFM_CSV_DEFAULTS:
+            location = default_location[0]
+            for i, alias in enumerate(default_location):
+                if i == 0:
+                    continue # skip index 0 (already written)
+                location += ',{}'.format(alias)
+        dotfm_csv.close()
+
+        # create dotfm.csv symbolic link
+        os.system('ln -sv {} {}'.format(location, DOTFM_CSV_FILE))
 
 def dotfm_install(dotfile):
     LOGGER.info('installing {}...'.format(dotfile))
@@ -204,6 +243,9 @@ if __name__ == '__main__':
     else:
         logging.basicConfig(level=logging.INFO, format='%(lineno)-4s {} | %(asctime)s | %(levelname)-7s | %(message)s'.format(NAME))
         LOGGER = logging.getLogger(__name__)
+
+    # load dotfile locations
+    dotfm_init()
 
     # run command
     if command == 'install':
