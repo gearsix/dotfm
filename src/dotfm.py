@@ -48,7 +48,7 @@ def parse_arguments():
     global ARGS
     valid_commands = ['install', 'remove', 'edit', 'install-all', 'list']
     
-    parser = argparse.ArgumentParser(description='a simple tool to help you manage your dot files, see \"man dotfm\" for more')
+    parser = argparse.ArgumentParser(description='a simple tool to help you manage your dot files')
     parser.add_argument('cmd', metavar='COMMAND', choices=valid_commands, help='the dotfm COMMAND to execute: {}'.format(valid_commands))
     parser.add_argument('dotfile', metavar='DOTFILE', help='name of the dotfile dotfm will execute COMMAND on, for \"install\" this must be a path to the dotfile to install')
     parser.add_argument('-d', '--debug', action='store_true', help='display debug logs')
@@ -191,10 +191,12 @@ def dotfm_list(dotfile):
 # MAIN
 #------
 if __name__ == '__main__':
+    # parse args
     parse_arguments()
     command = ARGS.cmd
     dotfile = ARGS.dotfile
 
+    # init LOGGER
     if ARGS.debug == True:
         logging.basicConfig(level=logging.DEBUG, format='%(lineno)-4s {} | %(asctime)s | %(levelname)-7s | %(message)s'.format(NAME))
         LOGGER = logging.getLogger(__name__)
@@ -203,6 +205,7 @@ if __name__ == '__main__':
         logging.basicConfig(level=logging.INFO, format='%(lineno)-4s {} | %(asctime)s | %(levelname)-7s | %(message)s'.format(NAME))
         LOGGER = logging.getLogger(__name__)
 
+    # run command
     if command == 'install':
         validate_dotfile_path(dotfile, os.path.abspath(dotfile))
         dotfm_install(os.path.abspath(dotfile))
