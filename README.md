@@ -129,6 +129,7 @@ Commands:
 - [x] <s>List dotfile locations (W)</s>
 - [ ] Create a dotfile (W)
 - [ ] Update dotfile source location (W)
+- [ ] Move a dotfile and create a link to it's new location in the original location (S)
 
 ---
 
