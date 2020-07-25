@@ -11,6 +11,7 @@
 #---------
 # IMPORTS
 #---------
+# std
 import sys
 import os
 import csv
@@ -71,15 +72,25 @@ def validate_dotfiledir_path(dirname, dotfiledir_path):
         error_exit('DOTFILE DIRECTORY \"{}\" ({}) is not a directory'.format(dotfile, dotfiledir_path))
 
 def dotfm_init():
-    LOGGER.info('loading dotfile locations...')
+    """ If DOTFM_CSV_FILE does not exist, create it.
+        Will prompt the user where they want the file to be created at,
+        if that location does not match DOTFM_CSV_FILE, DOTFM_CSV_FILE 
+        will be a symbolic link to that location.
+
+        @param LOGGER = A logger to use the .debug, .warning and .info functions of
+    """
+    
+    LOGGER.debug('loading dotfile locations...')
 
     if not os.path.exists(DOTFM_CSV_FILE):
         LOGGER.warning('dotfile_locations not found')
 
         # get location to create dotfm.csv at
-        location = input('where would you like to store the dotfm config (default: {})? '.format(DOTFM_CSV_FILE))
-        if len(location) > 0:
-            if os.path.exists(location):
+        location = -1
+        while location == -1:
+            location = input('where would you like to store the dotfm config (default: {})? '.format(DOTFM_CSV_FILE))
+            # prompt user to overwrite existing dotfm.csv file
+            if len(location) > 0 and os.path.exists(location):
                 yn = ''
                 while yn == '':
                     yn = input('{} already exists, overwrite (y/n)? '.format(location))
@@ -90,67 +101,78 @@ def dotfm_init():
                         location = DOTFM_CSV_FILE
                     else:
                         yn = ''
-        else: # use default
-            location = DOTFM_CSV_FILE
+            # use default location
+            elif len(location) == 0:
+                location = DOTFM_CSV_FILE
+            # ask again
+            else:
+                location = -1
 
         # write dotfm dotfile to csv
         dotfm_csv = open(location, "w")
-        dfl = KNOWN_DOTFILES[0][0]
-        for i, alias in enumerate(KNOWN_DOTFILES[0]):
+        for i, dfl in enumerate(KNOWN_DOTFILES[0]):
             if i == 0:
-                continue # 0 = the location (not alias)
-            dfl += ',{}'.format(alias)
-        dotfm_csv.write(dfl+'\n')
+                dotfm_csv.write(dfl)
+            else:
+                dotfm_csv.write(',{}'.format(csv))
+        dotfm_csv.write('\n')
         dotfm_csv.close()
 
         # create dotfm.csv symbolic link
         os.system('mkdir -p {}'.format(os.path.dirname(DOTFM_CSV_FILE)))
-        os.system('ln -fsv {} {}'.format(os.path.abspath(location), DOTFM_CSV_FILE))
+        if os.path.abspath(location) != DOTFM_CSV_FILE:
+            os.system('ln -fsv {} {}'.format(os.path.abspath(location), DOTFM_CSV_FILE))
 
 def dotfm_install(dotfile):
+    """ check "KNOWN_DOTFILES" to see if an alias matches "dotfile" basename, if it does create a
+        symbolic link from "dotfile" to the matching "KNOWN_DOTFILES" location (index 0).
+
+        If file at matching "KNOWN_DOTFILES" location exists, prompt user to overwrite it.
+    """
+
     LOGGER.info('installing {}...'.format(dotfile))
-    
+
+    # check if dotfile matches an alias in KNOWN_DOTFILES
     found = False
-    for dfl in DOTFILE_LOCATIONS:
+    for dfl in KNOWN_DOTFILES:
         if found == True:
             break
-        for name in dfl[0]:
-            if os.path.basename(dotfile) == name:
+        for alias in dfl[1:]:
+            if os.path.basename(dotfile) == alias: # compare dotfile base file name
                 found = True
-                dest = os.path.abspath(dfl[1])
-                # make sure path exists
+                # make sure dotfile dir exists
+                dest = os.path.abspath(dfl[0])
                 if not os.path.exists(os.path.dirname(dest)):
                     os.system('mkdir -vp {}'.format(dest))
-                # check if file already exists
+                # check if file already exists and prompt for action if it does
                 if os.path.lexists(dest):
                     LOGGER.warning('{} already exists!'.format(dest))
                     oca = ''
                     while oca == '':
                         oca = input('[o]verwrite/[c]ompare/[a]bort? ')
-                        if len(oca) > 0:
-                            if oca[0] == 'o':
-                                LOGGER.info('overwriting {} with {}'.format(dest, dotfile))
-                                LOGGER.info('backup {} -> {}.bak'.format(dest, dest))
-                                os.system('mv {} {}.bak'.format(dest, dest))
-                                LOGGER.info('linking {} -> {}'.format(dest, dotfile)) 
-                                os.system('ln -s {} {}'.format(dotfile, dest))
-                            elif oca[0] == 'c':
-                                LOGGER.info('comparing {} to {}'.format(dotfile, dest))
-                                os.system('diff -y {} {}'.format(dotfile, dest))  # maybe use vimdiff
-                                oca = ''
-                            elif oca[0] == 'a':
-                                LOGGER.info('aborting install')
-                                sys.exit()
-                            else:
-                                oca = ''
+                        if oca[0] == 'o': # overwrite existing file
+                            LOGGER.info('overwriting {} with {}'.format(dest, dotfile))
+                            LOGGER.info('backup {} -> {}.bak'.format(dest, dest))
+                            os.system('mv {} {}.bak'.format(dest, dest))
+                            LOGGER.info('linking {} -> {}'.format(dest, dotfile)) 
+                            os.system('ln -s {} {}'.format(dotfile, dest))
+                        elif oca[0] == 'c': # print diff between existing file & dotfile
+                            LOGGER.info('comparing {} to {}'.format(dotfile, dest))
+                            os.system('diff -y {} {}'.format(dotfile, dest))  # maybe use vimdiff ?
+                            oca = ''
+                        elif oca[0] == 'a': # abort install
+                            LOGGER.info('aborting install')
+                            sys.exit()
                         else:
                             oca = ''
+                # create symbolic link to dotfile
                 else:
                     os.system('ln -vs {} {}'.format(dotfile, dest))
                 break
 
-    # check for unrecognised dotfile
+    # handle unrecognised dotfile alias
     if found == False:
+        # TODO prompt to add to DOTFM_CSV_FILE
         error_exit('dotfile basename not recognised ({})!\nmake sure that the dotfile name and location to install to exist in \"DOTFILE_LOCATIONS\" (see src/dotfm.py)'.format(os.path.basename(dotfile)))
     else:
         LOGGER.info('success - you might need to re-open the terminal to see changes take effect')
@@ -240,13 +262,13 @@ if __name__ == '__main__':
     dotfile = ARGS.dotfile
 
     # init LOGGER
+    log_lvl = logging.INFO
+    log_fmt = '%(lineno)-4s {} | %(asctime)s | %(levelname)-7s | %(message)s'.format(NAME)
     if ARGS.debug == True:
-        logging.basicConfig(level=logging.DEBUG, format='%(lineno)-4s {} | %(asctime)s | %(levelname)-7s | %(message)s'.format(NAME))
-        LOGGER = logging.getLogger(__name__)
         LOGGER.debug('displaying debug logs')
-    else:
-        logging.basicConfig(level=logging.INFO, format='%(lineno)-4s {} | %(asctime)s | %(levelname)-7s | %(message)s'.format(NAME))
-        LOGGER = logging.getLogger(__name__)
+        log_lvl = logging.DEBUG
+    logging.basicConfig(level=log_lvl, format=log_fmt)
+    LOGGER = logging.getLogger(__name__)
 
     # load dotfile locations
     dotfm_init()
