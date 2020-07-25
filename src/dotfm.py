@@ -7,6 +7,10 @@
 # created: 2020-01-15
 # updated: 2020-07-20
 # notes:
+# TODO:
+#   - add handling for duplicate alias names (provide user choice)
+#   - make KNOWN_DOTFILES more exhaustive
+#   - on installing unknown dotfile, add the option to send request to authors to add it to KNOWN_DOTFILES
 
 #---------
 # IMPORTS
@@ -29,7 +33,7 @@ VERSION = 'v1.0.2'
 DOTFM_CSV_FILE = '/home/{}/.config/dotfm/installed.csv'.format(USER)
 KNOWN_DOTFILES = [ # dotfiles that dotfm knows by default
     # location                                          # aliases
-    ['/home/{}/.config/dotfm/dotfm.csv'.format(USER),   'dotfm.csv', 'dotfm'],
+    ['/home/{}/.config/dotfm/{}'.format(USER, os.path.basename(DOTFM_CSV_FILE)),   os.path.basename(DOTFM_CSV_FILE), 'dotfm'],
     ['/home/{}/.bashrc'.format(USER),                   '.bashrc', 'bashrc'],
     ['/home/{}/.profile'.format(USER),                  '.profile', 'profile'],
     ['/home/{}/.bash_profile'.format(USER),             '.bash_profile', 'bash_profile'],
@@ -59,18 +63,6 @@ def parse_arguments():
     parser.add_argument('-d', '--debug', action='store_true', help='display debug logs')
     parser.add_argument('-v', '--version', action='version', version='%(prog)s {}'.format(VERSION))
     ARGS = parser.parse_args()
-
-def validate_dotfile_path(dotfile, dotfile_path):
-    if not os.path.exists(dotfile_path):
-        error_exit('DOTFILE \"{}\" ({}) not found'.format(dotfile, dotfile_path))
-    if not os.path.isfile(dotfile_path):
-        error_exit('DOTFILE \"{}\" ({}) should be a file, not a dir'.format(dotfile, dotfile_path))
-
-def validate_dotfiledir_path(dirname, dotfiledir_path):
-    if not os.path.exists(dotfiledir_path):
-        error_exist('DOTFILE DIRECTORY \"{}\" ({}) not found'.format(dotfile, dotfiledir_path))
-    if not os.path.isdir(dotfiledir_path):
-        error_exit('DOTFILE DIRECTORY \"{}\" ({}) is not a directory'.format(dotfile, dotfiledir_path))
 
 def dotfm_init():
     """ If DOTFM_CSV_FILE does not exist, create it. If it does, load it's values into KNOWN_DOTFILES
@@ -191,29 +183,17 @@ def dotfm_install(dotfile):
 
     # handle unrecognised dotfile alias
     if found == False:
-        # TODO prompt to add to DOTFM_CSV_FILE
-        error_exit('dotfile basename not recognised ({})!\nmake sure that the dotfile name and location to install to exist in \"DOTFILE_LOCATIONS\" (see src/dotfm.py)'.format(os.path.basename(dotfile)))
+        LOGGER.info('dotfile not known by dotfm ({})'.format(os.path.basename(dotfile)))
+        path = ''
+        while path == '':
+            path = input('where should dotfm install "{}" (e.g. /home/{}/.bashrc)? '.format(dotfile, USER))
+            aliases = input('what aliases would you like to assign to this dotfile (e.g. .bashrc bashrc brc): ')
+            dfl = aliases.split(' ')
+            dfl.insert(0, path)
+            KNOWN_DOTFILES.append(dfl) # will be forgotten at the end of runtime
+            dotfm_install(dotfile)
     else:
         LOGGER.info('success - you might need to re-open the terminal to see changes take effect')
-
-def dotfm_installall(dotfile_dir):
-    LOGGER.info('installing all dotfiles in {}'.format(dotfile_dir))
-
-    for df in os.listdir(os.path.abspath(dotfile_dir)):
-        df = os.path.abspath('{}/{}'.format(dotfile_dir, df))
-        if os.path.isfile(df):
-            LOGGER.debug('found {}, installing...'.format(df))
-            found = False
-            for dfl in DOTFILE_LOCATIONS:
-                if os.path.basename(df) in dfl[0]:
-                    found = True
-            if found:
-                dotfm_install(df)
-            else:
-                LOGGER.info('found {}, skipping...'.format(df))
-        elif os.path.isdir(df) and os.path.basename(df) != ".git":
-            LOGGER.debug('found dir {}')
-            dotfm_installall(df)
 
 def dotfm_remove(alias):
     """remove a dotfile (from it's known location) and remove it from DOTFM_CSV_FILE
@@ -234,10 +214,10 @@ def dotfm_remove(alias):
         os.system('rm -v {}'.format(target))
         # remove from installed
         del INSTALLED_DOTFILES[found]
-        with open(DOTFM_CSV_FILE, 'w') as dotfm_csv_file:
+        with open(DOTFM_CSV_FILE, 'w') as dotfm_file:
             dotfm_csv = csv.writer(dotfm_file)
             dotfm_csv.writerows(INSTALLED_DOTFILES)
-            dotfm_csv_file.close()
+            dotfm_file.close()
 
 def dotfm_edit(dotfile_alias):
     """ open dotfile with alias matching "dotfm_alias" in EDITOR
@@ -298,15 +278,11 @@ if __name__ == '__main__':
 
     # run command
     if command == 'install':
-        validate_dotfile_path(dotfile, os.path.abspath(dotfile))
         dotfm_install(os.path.abspath(dotfile))
     elif command == 'remove':
         dotfm_remove(dotfile)
     elif command == 'edit':
         dotfm_edit(dotfile)
-    elif command == 'install-all':
-        validate_dotfiledir_path(dotfile, os.path.abspath(dotfile))
-        dotfm_installall(os.path.abspath(dotfile))
     elif command == 'list':
         dotfm_list(dotfile)
 
