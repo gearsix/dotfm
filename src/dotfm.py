@@ -26,7 +26,7 @@ USER = os.getenv('USER')                # $USER calling dotfm
 ARGS = sys.argv                         # parsed arguments
 EDITOR = os.getenv('EDITOR') or 'nano'  # text editor to modify dotfiles with
 VERSION = 'v1.0.2'
-DOTFM_CSV_FILE = '/home/{}/.config/dotfm/dotfm.csv'.format(USER)
+DOTFM_CSV_FILE = '/home/{}/.config/dotfm/installed.csv'.format(USER)
 KNOWN_DOTFILES = [ # dotfiles that dotfm knows by default
     # location                                          # aliases
     ['/home/{}/.config/dotfm/dotfm.csv'.format(USER),   'dotfm.csv', 'dotfm'],
@@ -40,6 +40,7 @@ KNOWN_DOTFILES = [ # dotfiles that dotfm knows by default
     ['/home/{}/.config/rc.conf'.format(USER),           'rc.conf', 'ranger.conf'],
     ['/home/{}/.config/user-dirs.dirs'.format(USER),    'user-dirs.dirs', 'xdg-user-dirs'],
 ]
+INSTALLED_DOTFILES = [] # appended to during dotfm_init
 
 #-----------
 # FUNCTIONS
@@ -72,7 +73,7 @@ def validate_dotfiledir_path(dirname, dotfiledir_path):
         error_exit('DOTFILE DIRECTORY \"{}\" ({}) is not a directory'.format(dotfile, dotfiledir_path))
 
 def dotfm_init():
-    """ If DOTFM_CSV_FILE does not exist, create it.
+    """ If DOTFM_CSV_FILE does not exist, create it. If it does, load it's values into KNOWN_DOTFILES
         Will prompt the user where they want the file to be created at,
         if that location does not match DOTFM_CSV_FILE, DOTFM_CSV_FILE 
         will be a symbolic link to that location.
@@ -123,6 +124,15 @@ def dotfm_init():
         if os.path.abspath(location) != DOTFM_CSV_FILE:
             os.system('ln -fsv {} {}'.format(os.path.abspath(location), DOTFM_CSV_FILE))
 
+        # append to INSTALLED_DOTFILES
+        INSTALLED_DOTFILES.append(KNOWN_DOTFILES[0])
+    else: # load existing values into INSTALLED_DOTFILES
+        dotfm_csv = open(DOTFM_CSV_FILE, "r")
+        dotfm_csv_reader = csv.reader(dotfm_csv)
+        for dfl in dotfm_csv_reader:
+            INSTALLED_DOTFILES.append(dfl)
+        dotfm_csv.close()
+
 def dotfm_install(dotfile):
     """ check "KNOWN_DOTFILES" to see if an alias matches "dotfile" basename, if it does create a
         symbolic link from "dotfile" to the matching "KNOWN_DOTFILES" location (index 0).
@@ -168,6 +178,16 @@ def dotfm_install(dotfile):
                 # create symbolic link to dotfile
                 else:
                     os.system('ln -vs {} {}'.format(dotfile, dest))
+                # append to DOTFILE_CSV_FILE and INSTALLED_DOTFILES
+                LOGGER.info('appending to installed dotfiles...')
+                dotfm_csv = open(DOTFM_CSV_FILE, "a")
+                for i, item in enumerate(dfl):
+                    if i == 0:
+                        dotfm_csv.write(item)
+                    else:
+                        dotfm_csv.write(',{}'.format(item))
+                dotfm_csv.close()
+                INSTALLED_DOTFILES.append(dfl)
                 break
 
     # handle unrecognised dotfile alias
@@ -233,18 +253,14 @@ def dotfm_list(dotfile):
     LOGGER.info('listing dotfm files')
 
     found = False
-    dotfm_csv = open(DOTFM_CSV_FILE, "r")
-    dotfm_csv_reader = csv.reader(dotfm_csv)
     LOGGER.info('\t{} Location'.format('Aliases...'.ljust(35)))
-    for dfl in dotfm_csv_reader:
+    for dfl in INSTALLED_DOTFILES:
         # list all dotfile locations
         if dotfile == 'all':
             dfln = '"' + '", "'.join(dfl[1:]) + '"'
             LOGGER.info('\t{} {} -> {}'.format(dfln.ljust(35), dfl[0], os.path.realpath(dfl[0])))
         # list specific dotfile location
         else:
-            if found == True:
-                break
             for name in dfl:
                 if dotfile == name:
                     found = True
