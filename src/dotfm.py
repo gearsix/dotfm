@@ -115,7 +115,7 @@ def dotfm_init():
             if i == 0:
                 dotfm_csv.write(dfl)
             else:
-                dotfm_csv.write(',{}'.format(csv))
+                dotfm_csv.write(',{}'.format(dfl))
         dotfm_csv.write('\n')
         dotfm_csv.close()
 
@@ -138,6 +138,8 @@ def dotfm_install(dotfile):
         symbolic link from "dotfile" to the matching "KNOWN_DOTFILES" location (index 0).
 
         If file at matching "KNOWN_DOTFILES" location exists, prompt user to overwrite it.
+
+        @param dotfile = filepath to the dotfile to install
     """
 
     LOGGER.info('installing {}...'.format(dotfile))
@@ -180,13 +182,10 @@ def dotfm_install(dotfile):
                     os.system('ln -vs {} {}'.format(dotfile, dest))
                 # append to DOTFILE_CSV_FILE and INSTALLED_DOTFILES
                 LOGGER.info('appending to installed dotfiles...')
-                dotfm_csv = open(DOTFM_CSV_FILE, "a")
-                for i, item in enumerate(dfl):
-                    if i == 0:
-                        dotfm_csv.write(item)
-                    else:
-                        dotfm_csv.write(',{}'.format(item))
-                dotfm_csv.close()
+                with open(DOTFM_CSV_FILE, "a") as dotfm_csv_file:
+                    dotfm_csv = csv.writer(dotfm_csv_file)
+                    dotfm_csv.writerow(dfl)
+                    dotfm_csv_file.close()
                 INSTALLED_DOTFILES.append(dfl)
                 break
 
@@ -216,19 +215,29 @@ def dotfm_installall(dotfile_dir):
             LOGGER.debug('found dir {}')
             dotfm_installall(df)
 
-def dotfm_remove(dotfile):
+def dotfm_remove(alias):
+    """remove a dotfile (from it's known location) and remove it from DOTFM_CSV_FILE
+    
+        @param alias = an alias matching the known aliases of the dotfile to remove
+    """
     LOGGER.info('removing {}...'.format(dotfile))
 
-    found = False
-    for dfl in DOTFILE_LOCATIONS:
-        if found == True:
+    found = -1
+    for i, dfl in enumerate(INSTALLED_DOTFILES):
+        if alias in dfl:
+            found = i
             break
-        for name in dfl[0]:
-            if os.path.basename(dotfile) == name:
-                found = True
-                target = '{}'.format(os.path.abspath(dfl[1]), name)
-                os.system('rm -v {}'.format(target))
-                break
+
+    if found != -1:
+        # remove dotfile
+        target = '{}'.format(os.path.abspath(dfl[0]))
+        os.system('rm -v {}'.format(target))
+        # remove from installed
+        del INSTALLED_DOTFILES[found]
+        with open(DOTFM_CSV_FILE, 'w') as dotfm_csv_file:
+            dotfm_csv = csv.writer(dotfm_file)
+            dotfm_csv.writerows(INSTALLED_DOTFILES)
+            dotfm_csv_file.close()
 
 def dotfm_edit(dotfile):
     LOGGER.info('editing {}...'.format(dotfile))
@@ -294,8 +303,7 @@ if __name__ == '__main__':
         validate_dotfile_path(dotfile, os.path.abspath(dotfile))
         dotfm_install(os.path.abspath(dotfile))
     elif command == 'remove':
-        validate_dotfile_path(dotfile)
-        dotfm_remove(os.path.abspath(dotfile))
+        dotfm_remove(dotfile)
     elif command == 'edit':
         dotfm_edit(os.path.abspath(dotfile))
     elif command == 'install-all':
