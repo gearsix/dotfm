@@ -239,24 +239,22 @@ def dotfm_remove(alias):
             dotfm_csv.writerows(INSTALLED_DOTFILES)
             dotfm_csv_file.close()
 
-def dotfm_edit(dotfile):
+def dotfm_edit(dotfile_alias):
+    """ open dotfile with alias matching "dotfm_alias" in EDITOR
+        @param dotfile_alias = an alias of the dotfile to open
+    """
     LOGGER.info('editing {}...'.format(dotfile))
 
-    found = False
     target = ''
-    for dfl in DOTFILE_LOCATIONS:
-        if found == True:
+    for dfl in INSTALLED_DOTFILES:
+        if dotfile in dfl:
+            target = '{}'.format(dfl[0])
+            os.system('{} {}'.format(EDITOR, target))
+            LOGGER.info('success - you might need to re-open the terminal to see changes take effect')
             break
-        for name in dfl[0]:
-            if os.path.basename(dotfile) == name:
-                found = True
-                target = '{}'.format(os.path.abspath(dfl[1]))
-                os.system('{} {}'.format(EDITOR, target))
-                LOGGER.info('success - you might need to re-open the terminal to see changes take effect')
-                break
 
     if target == '':
-        error_exit('could not find {} in DOTFILE_LOCATIONS'.format(os.path.basename(dotfile)))
+        error_exit('could not find alias {} in installed.csv'.format(os.path.basename(dotfile)))
 
 def dotfm_list(dotfile):
     LOGGER.info('listing dotfm files')
@@ -305,7 +303,7 @@ if __name__ == '__main__':
     elif command == 'remove':
         dotfm_remove(dotfile)
     elif command == 'edit':
-        dotfm_edit(os.path.abspath(dotfile))
+        dotfm_edit(dotfile)
     elif command == 'install-all':
         validate_dotfiledir_path(dotfile, os.path.abspath(dotfile))
         dotfm_installall(os.path.abspath(dotfile))
