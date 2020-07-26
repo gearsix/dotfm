@@ -1,0 +1,5 @@
+- update README
+- update CHANGELOG
+- merge master (looks like develop got diverged)
+- do some testing
+- write a txt2man file
