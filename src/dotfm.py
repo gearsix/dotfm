@@ -30,7 +30,7 @@ USER = os.getenv('USER')                # $USER calling dotfm
 ARGS = sys.argv                         # parsed arguments
 EDITOR = os.getenv('EDITOR') or 'nano'  # text editor to modify dotfiles with
 VERSION = 'v1.0.2'
-DOTFM_CSV_FILE = '/home/{}/.config/dotfm/installed.csv'.format(USER)
+DOTFM_CSV_FILE = '/home/{}/.local/dotfm/installed.csv'.format(USER)
 KNOWN_DOTFILES = [ # dotfiles that dotfm knows by default
     # location                                          # aliases
     ['/home/{}/.config/dotfm/{}'.format(USER, os.path.basename(DOTFM_CSV_FILE)),   os.path.basename(DOTFM_CSV_FILE), 'dotfm'],
