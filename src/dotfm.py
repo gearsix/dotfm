@@ -59,7 +59,7 @@ def parse_arguments():
     
     parser = argparse.ArgumentParser(description='a simple tool to help you manage your dot files, see \"man dotfm\" for more.')
     parser.add_argument('cmd', metavar='COMMAND', choices=valid_commands, help='the dotfm COMMAND to execute: {}'.format(valid_commands))
-    parser.add_argument('dotfile', metavar='DOTFILE', help='the target dotfile to execute COMMAND on')
+    parser.add_argument('dotfile', metavar='DOTFILE', nargs=argparse.REMAINDER, help='the target dotfile to execute COMMAND on')
     parser.add_argument('-d', '--debug', action='store_true', help='display debug logs')
     parser.add_argument('-v', '--version', action='version', version='%(prog)s {}'.format(VERSION))
     ARGS = parser.parse_args()
@@ -236,24 +236,36 @@ def dotfm_edit(dotfile_alias):
     if target == '':
         error_exit('could not find alias {} in installed.csv'.format(os.path.basename(dotfile)))
 
-def dotfm_list(dotfile):
-    LOGGER.info('listing dotfm files')
+def dotfm_list(dotfiles):
+    LOGGER.info('listing dotfm files: {}'.format('all' if len(dotfiles) == 0 else dotfiles))
 
     found = False
-    LOGGER.info('\t{} Location'.format('Aliases...'.ljust(35)))
-    for dfl in INSTALLED_DOTFILES:
-        # list all dotfile locations
-        if dotfile == 'all':
-            dfln = '"' + '", "'.join(dfl[1:]) + '"'
-            LOGGER.info('\t{} {} -> {}'.format(dfln.ljust(35), dfl[0], os.path.realpath(dfl[0])))
-        # list specific dotfile location
-        else:
-            for name in dfl:
-                if dotfile == name:
-                    found = True
-                    dfln = '"' + '", "'.join(dfl[1:]) + '"'
-                    LOGGER.info('\t{} {} -> {}'.format(dfln.ljust(35), dfl[0], os.path.realpath(dfl[0])))
+    printout = [ # string arr, 1 elem for each row
+        '\t{} Location'.format('Aliases...'.ljust(35)),
+    ]
+
+    # list all dotfiles
+    if len(dotfiles) == 0:
+        for dfl in INSTALLED_DOTFILES:
+            aliases = ('"'+'", "'.join(dfl[1:])+'"')
+            location = dfl[0]
+            if os.path.realpath(dfl[0]) != location:
+                location += ' -> {}'.format(os.path.realpath(dfl[0]))
+            printout.append('\t{} {}'.format(aliases.ljust(35), location))
+    # list specified dotfiles
+    else:
+        for dotfile in dotfiles:
+            for dfl in INSTALLED_DOTFILES:
+                if dotfile in dfl:
+                    aliases = ('"'+'", "'.join(dfl[1:])+'"')
+                    location = dfl[0]
+                    if os.path.realpath(dfl[0]) != location:
+                        location += ' -> {}'.format(os.path.realpath(dfl[0]))
+                    printout.append('\t{} {}'.format(aliases.ljust(35), location))
                     break
+
+    for p in printout:
+        LOGGER.info(p)
 
 #------
 # MAIN
@@ -278,11 +290,14 @@ if __name__ == '__main__':
 
     # run command
     if command == 'install':
-        dotfm_install(os.path.abspath(dotfile))
+        for d in dotfile:
+            dotfm_install(os.path.abspath(d))
     elif command == 'remove':
-        dotfm_remove(dotfile)
+        for d in dotfile:
+            dotfm_remove(d)
     elif command == 'edit':
-        dotfm_edit(dotfile)
+        for d in dotfile:
+            dotfm_edit(d)
     elif command == 'list':
         dotfm_list(dotfile)
 
