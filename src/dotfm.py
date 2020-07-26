@@ -237,6 +237,9 @@ def dotfm_edit(dotfile_alias):
         error_exit('could not find alias {} in installed.csv'.format(os.path.basename(dotfile)))
 
 def dotfm_list(dotfiles):
+    """ list specified dotfile aliases and install location (displays all if none are specified)
+        @param dotfiles = an array of dotfile aliases to list, if len == 0 then all will be printed
+    """
     LOGGER.info('listing dotfm files: {}'.format('all' if len(dotfiles) == 0 else dotfiles))
 
     found = False
