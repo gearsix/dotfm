@@ -90,7 +90,7 @@ def error_exit(message):
 
 def parse_arguments():
     global ARGS
-    valid_commands = ['install', 'remove', 'edit', 'install-all', 'list']
+    valid_commands = ['install', 'remove', 'edit', 'list']
     
     parser = argparse.ArgumentParser(description='a simple tool to help you manage your dot files, see \"man dotfm\" for more.')
     parser.add_argument('cmd', metavar='COMMAND', choices=valid_commands, help='the dotfm COMMAND to execute: {}'.format(valid_commands))
