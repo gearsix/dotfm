@@ -80,6 +80,10 @@ INSTALLED_DOTFILES = [] # appended to during dotfm_init
 #-----------
 # FUNCTIONS
 #-----------
+def log_info(info):
+    if ARGS.quiet == False:
+        LOGGER.info(info)
+
 def error_exit(message):
     LOGGER.error(message)
     sys.exit()
@@ -93,6 +97,7 @@ def parse_arguments():
     parser.add_argument('dotfile', metavar='DOTFILE', nargs=argparse.REMAINDER, help='the target dotfile to execute COMMAND on')
     parser.add_argument('-d', '--debug', action='store_true', help='display debug logs')
     parser.add_argument('-v', '--version', action='version', version='%(prog)s {}'.format(VERSION))
+    parser.add_argument('-q', '--quiet', action='store_true', help='tell dotfm to shutup')
     ARGS = parser.parse_args()
 
 def dotfm_init():
@@ -226,7 +231,7 @@ def dotfm_install(dotfile):
             KNOWN_DOTFILES.append(dfl) # will be forgotten at the end of runtime
             dotfm_install(dotfile)
     else:
-        LOGGER.info('success - you might need to re-open the terminal to see changes take effect')
+        log_info('success - you might need to re-open the terminal to see changes take effect')
 
 def dotfm_remove(alias):
     """remove a dotfile (from it's known location) and remove it from DOTFM_CSV_FILE
@@ -265,6 +270,14 @@ def dotfm_edit(dotfile_alias):
             os.system('{} {}'.format(EDITOR, target))
             LOGGER.info('success - you might need to re-open the terminal to see changes take effect')
             break
+        for name in dfl[0]:
+            if os.path.basename(dotfile) == name:
+                found = True
+                target = '{}'.format(os.path.abspath(dfl[1]))
+                log_info('found {}'.format(target))
+                os.system('{} {}'.format(EDITOR, target))
+                log_info('success - you might need to re-open the terminal to see changes take effect')
+                break
 
     if target == '':
         error_exit('could not find alias {} in installed.csv'.format(os.path.basename(dotfile)))
