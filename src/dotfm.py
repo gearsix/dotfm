@@ -33,7 +33,7 @@ VERSION = 'v1.0.2'
 DOTFM_CSV_FILE = '/home/{}/.local/dotfm/installed.csv'.format(USER)
 KNOWN_DOTFILES = [ # dotfiles that dotfm knows by default
     # location                                          # aliases
-    ['/home/{}/.config/dotfm/{}'.format(USER, os.path.basename(DOTFM_CSV_FILE)),   os.path.basename(DOTFM_CSV_FILE), 'dotfm'],
+    [DOTFM_CSV_FILE,                                    'dotfm', 'dotfm.csv'],
     ['/home/{}/.bashrc'.format(USER),                   '.bashrc', 'bashrc'],
     ['/home/{}/.profile'.format(USER),                  '.profile', 'profile'],
     ['/home/{}/.bash_profile'.format(USER),             '.bash_profile', 'bash_profile'],
@@ -76,12 +76,12 @@ def dotfm_init():
     LOGGER.debug('loading dotfile locations...')
 
     if not os.path.exists(DOTFM_CSV_FILE):
-        LOGGER.warning('dotfile_locations not found')
+        LOGGER.warning('{} not found'.format(DOTFM_CSV_FILE))
 
         # get location to create dotfm.csv at
         location = -1
         while location == -1:
-            location = input('where would you like to store the dotfm config (default: {})? '.format(DOTFM_CSV_FILE))
+            location = input('where would you like to store the dotfm csv file (default: {})? '.format(DOTFM_CSV_FILE))
             # prompt user to overwrite existing dotfm.csv file
             if len(location) > 0 and os.path.exists(location):
                 yn = ''
@@ -102,6 +102,8 @@ def dotfm_init():
                 location = -1
 
         # write dotfm dotfile to csv
+        LOGGER.info('creating dotfm_csv_file at {}'.format(location))
+        os.system('mkdir -p {}'.format(os.path.dirname(location)))
         dotfm_csv = open(location, "w")
         for i, dfl in enumerate(KNOWN_DOTFILES[0]):
             if i == 0:
