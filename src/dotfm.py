@@ -5,12 +5,13 @@
 #==========================
 # authors: gearsix
 # created: 2020-01-15
-# updated: 2020-07-20
+# updated: 2020-07-26
 # notes:
 # TODO:
 #   - add handling for duplicate alias names (provide user choice)
-#   - make KNOWN_DOTFILES more exhaustive
-#   - on installing unknown dotfile, add the option to send request to authors to add it to KNOWN_DOTFILES
+#   - add the option to submit unknown dotfiles to authors (to be appended to KNOWN_DOTFILES)
+#   - add option to install from remote urls
+#   - add function to modify dotfile aliases
 
 #---------
 # IMPORTS
@@ -26,23 +27,53 @@ import argparse
 # GLOBALS
 #---------
 NAME = os.path.basename(__file__)       # program name
+HOME = os.getenv('HOME')                # $HOME (where user's dotfiles are stored)
 USER = os.getenv('USER')                # $USER calling dotfm
 ARGS = sys.argv                         # parsed arguments
 EDITOR = os.getenv('EDITOR') or 'nano'  # text editor to modify dotfiles with
-VERSION = 'v1.0.2'
+VERSION = 'v2.0.0'
 DOTFM_CSV_FILE = '/home/{}/.local/dotfm/installed.csv'.format(USER)
-KNOWN_DOTFILES = [ # dotfiles that dotfm knows by default
-    # location                                          # aliases
-    [DOTFM_CSV_FILE,                                    'dotfm', 'dotfm.csv'],
-    ['/home/{}/.bashrc'.format(USER),                   '.bashrc', 'bashrc'],
-    ['/home/{}/.profile'.format(USER),                  '.profile', 'profile'],
-    ['/home/{}/.bash_profile'.format(USER),             '.bash_profile', 'bash_profile'],
-    ['/home/{}/.ssh/config'.format(USER),               'ssh_config'],
-    ['/home/{}/.vimrc'.format(USER),                    '.vimrc', 'vimrc'],
-    ['/home/{}/.config/nvim/init.vim'.format(USER),     'init.vim', 'nvimrc'],
-    ['/home/{}/.tmux.conf'.format(USER),                'tmux.conf', 'tmux.conf'],
-    ['/home/{}/.config/rc.conf'.format(USER),           'rc.conf', 'ranger.conf'],
-    ['/home/{}/.config/user-dirs.dirs'.format(USER),    'user-dirs.dirs', 'xdg-user-dirs'],
+KNOWN_DOTFILES = [ # dotfiles that dotfm knows by default (install location, aliases...)
+    [DOTFM_CSV_FILE, 'dotfm', 'dotfm.csv'],
+    # bashrc
+    ['{}/.bashrc'.format(HOME), '.bashrc', 'bashrc'],
+    ['{}/.bash_profile'.format(HOME), '.bash_profile', 'bash_profile'],
+    ['{}/.profile'.format(HOME), '.profile', 'profile'],
+    # zshell
+    ['{}/.zshrc'.format(HOME), '.zshrc', 'zshrc'],
+    ['{}/.zprofile'.format(HOME), '.zprofile', 'zprofile'],
+    ['{}/.zshenv'.format(HOME), '.zshenv', 'zshenv'],
+    # ssh
+    ['{}/.ssh/config'.format(HOME), 'ssh_config'],
+    # vim
+    ['{}/.vimrc'.format(HOME), '.vimrc', 'vimrc'],
+    # neovim
+    ['{}/.config/nvim/init.vim'.format(HOME), 'init.vim', 'nvimrc'],
+    # git
+    ['{}/.gitconfig'.format(HOME), '.gitconfig', 'gitconfig'],
+    ['{}/.gitmessage'.format(HOME), '.gitmessage', 'gitmessage'],
+    ['{}/.gitignore'.format(HOME), '.gitignore', 'gitignore'],
+    # ruby
+    ['{}/.gemrc'.format(HOME), '.gemrc', 'gemrc'],
+    # tmux
+    ['{}/.tmux.conf'.format(HOME), 'tmux.conf', 'tmux.conf'],
+    # xdg 
+    ['{}/.config/user-dirs.dirs'.format(HOME), 'user-dirs.dirs', 'xdg-user-dirs'],
+    ['{}/.xinitrc'.format(HOME), '.xinitrc', 'xinitrc'],
+    # ranger
+    ['{}/.config/rc.conf'.format(HOME), 'rc.conf', 'ranger.conf', 'ranger.cfg'],
+    # neofetch
+    ['{}/.config/neofetch/config'.format(HOME), 'config', 'neofetch.conf', 'neofetch.cfg'],
+    # sway
+    ['{}/.config/sway/config'.format(HOME), 'config', 'sway.cfg', 'sway.conf'],
+    # awesome
+    ['{}/.config/awesome/rc.lua'.format(HOME), 'rc.lua', 'awesomerc'],
+    # i3
+    ['{}/.config/i3/config'.format(HOME), 'config', 'i3.conf', 'i3.cfg', 'i3'],
+    # emacs
+    ['{}/.emacs'.format(HOME), '.emacs', 'emacs'],
+    # misc
+    ['{}/.inputrc'.format(HOME), '.inputrc', 'inputrc']
 ]
 INSTALLED_DOTFILES = [] # appended to during dotfm_init
 
