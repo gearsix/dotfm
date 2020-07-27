@@ -8,7 +8,7 @@ TODO LIST
 - [ ] (W) Allow a remote url to be used for calling dotfile source
 - [ ] (W) Add a double-check to dotfm remove (if not symlink)
 - [x] (?) Follow symlinks to list source file locations too
-- [ ] (S) Move the details section above into man pages, probably use txt2man (with pdf conversion)
+- [x] (S) Move the README into man page, probably use txt2man
 - [x] (W) List dotfile locations
 - [ ] (C) Command to create a dotfile
 - [ ] (W) Command Update dotfile source location
