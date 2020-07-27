@@ -16,96 +16,112 @@ This is a really simple python script I wrote to manage dotfiles. I had a brief 
 ---
 
 ## usage
-There's an array near the top of the file (`DOTFILE_LOCATIONS`) that informs _dotfm_ of alias names for calling a dotfile and where to install that dotfile. Feel free to modify this array to your liking.
 
-### cheatsheet
-**Note:** For the following examples, _$DOTFILES_ will be used to address the src folder dotfiles are stored in.
+```
+	usage: dotfm [-h] [-d] [-v] [-q] COMMAND DOTFILE...
 
-- **Install** a dotfile: `dotfm install $DOTFILES/bashrc` (will **ln -s** _$DOTFILES/bashrc_ -> _~/.bashrc_)
-- **Uninstall** a dotfile: `dotfm remove bashrc` (will **rm** _~/.bashrc_)
-- **Edit** a dotfile: `dotfm edit bashrc` (will open _.bashrc_ in _$EDITOR_ or _nano_)
-- **Install all** your dotfiles: `dotfm install-all $DOTFILES` (runs **dotfm install** on all files in _$DOTFILES_)
-- **List** your dotfm dotfile aliases and their location: `dotfm list $DOTFILE`
+	a simple tool to help you manage your dot files.
 
-### details
-#### DOTFILE\_LOCATIONS
-
-_DOTFILE\_LOCATIONS_ is a multi-dimensional array near the top of _src/dotfm.py_ (under _GLOBALS_). Think of this array as your _config file_ for now.
-
-**It's important this array has the correct values for dotfm to work.**
-
-Each element of it is an array with _two values_: `[['dotfile_alias', ...], 'dotfile_install_path']`
-
-- **[dotfile\_alias, ...]** = An array of names you'd like to use to call this dotfile (at least one value should match the dotfile's name in your $DOTFILE repo)
-- **dotfile\_install\_path** = Filepath of where the dotfile should install to (include filename, e.g. `'/home/{}/.bashrc'.format(USER)`)
-  
-#### dotfm install DOTFILE\_PATH
-_DOTFILE_ should be **path** of the **dotfile to install**.
-
-**If the base name of _DOTFILE_ is recognised**, _dotfm_ will make sure the directory to install the dotfile to exists and then create a symbolic link at that location to _DOTFILE_.
-If a file already exists at the install location, you'll get a prompt asking whether you want to:
-
-- _\[o\]verwrite_ = move the existing file to _(existing file location).bak_ and force create the symbolic link
-- _\[c\]ompare_ = print out a _diff_ of the two files and return to these options
-- _\[a\]bort_ = abort the installation
-
-**If the base name of _DOTFILE_ isn't found** in the alias lists in _DOTFILE\_LOCATIONS_, then the install will abort. You'll have to manually add your dotfile to _DOTFILE_LOCATIONS_ or modify it's aliases to include yours. Make sure to re-install afterwards.
-
-#### dotfm remove DOTFILE\_NAME
-_DOTFILE_  should be the **name** of the **dotfile to remove**.
-
-**WARNING!** This will _rm_ the file named _DOTFILE_ from it's install location (found in _DOTFILE\_LOCATIONS_).
-
-_This is a destructive function and you will **permenantly lose the file**._ This should be fine in most cases if you installed the file with _dotfm_ as it will only rm the symlink to your source dotfile, It's always best to make sure you check though. 
-
-#### dotfm edit DOTFILE\_NAME
-_DOTFILE_ should be the **name** of the **dotfile to edit**.
-
-This will open the _DOTFILE_ in the editor set in your environment variables as _EDITOR_. If _EDITOR_ is not set, then it will open it in _nano_.
-
-The file opened is located at the matching install location found in _DOTFILE\_LOCATIONS_.
-
-#### dotfm install-all DOTFILE\_DIR
-_DOTFILE_DIR_ should be a **directory path** containing the source files of all the **dotfiles to install**
-
-This will recursively run _dotfm install DOTFILE_ on each file found in the specified directory.
-
-#### _dotfm list DOTFILE\_NAME_
-Useful if you've forgotten the alias names of your dotfiles or if you've forgotten where they're kept.
-
-_DOTFILE\_NAME_ can be **all** to **list all known** dotfiles, otherwise it should be the **name** of the **dotfile to list**.
-
-### help
-
-	usage: dotfm [-h] [-d] [-v] COMMAND DOTFILE
-	
-	a simple tool to help you manage your dot files, see "man dotfm" for more
-	
 	positional arguments:
-	  COMMAND        the dotfm COMMAND to execute: ['install', 'remove', 'edit',
-	                 'install-all', 'list']
-	  DOTFILE        name of the dotfile dotfm will execute COMMAND on, for
-	                 "install" this must be a path to the dotfile to install
-	
+	  COMMAND        the dotfm COMMAND to execute: ['install', 'remove', 'edit', 'list']
+	  DOTFILE        the target dotfile to execute COMMAND on
+
 	optional arguments:
 	  -h, --help     show this help message and exit
 	  -d, --debug    display debug logs
 	  -v, --version  show program's version number and exit
+	  -q, --quiet    tell dotfm to shutup
+```
+
+\* Multiple DOTFILE args can be passed
+
+### commands
+
+<details>
+	<summary><b>dotfm install DOTFILE...</b> = create a symlink to DOTFILE... at it's install location</summary>
+
+	Multiple DOTFILE args can be passed.
+
+	DOTFILE... should be the filepath of the dotfile to install
+
+	If the basename of DOTFILE is a recognised alias in KNOWN_DOTFILES, then dotfm will install it automatically.
+
+	If the basename of DOTFILE is not a recognised alias in KNOWN_DOTFILES, then dotfm will prompt you for an install location and aliases to recognise the dotfile with
+
+	If a file already exists at the install location of the dotfile, you will be prompted askin whether you want to:
+		- [o]verwrite = move the existing file to (existing file location).bak and install the dotfile
+		- [c]ompare = print out a diff -y of the two files and return to this prompt
+		- [a]bort = abort the dotfm runtime
+	
+	Feel free to fork this repo and modify KNOWN DOTFILES
+</details>
+
+<details>
+	<summary><b>dotfm remove DOTFILE...</b> = remove the file at the install location of the installed dotfile with a matching alias</summary>
+
+	This function will rm the file at the install location.
+
+	Multiple DOTFILE args can be passed.
+	
+	DOTFILE... should be an alias for the dotfile to remove.
+	
+	DOTFILE... will only be removed if they exist in DOTFM_CSV_FILE (tracks dotfiles installed by dotfm)
+	
+	Since this is a destructive function (uses rm), you will permenantly lose the file. This should be fine in most cases, however it's always best to check.
+</details>
+
+<details>
+	<summary><b>dotfm edit DOTFILE...</b> = edit a dotfile</summary>
+
+	Multiple DOTFILE args can be passed.
+	
+	DOTFILE... should be an alias for the dotfile to remove.
+	
+	This will simply open the file at the corresponding dotfiles install location
+	
+	The editor the dotfile is opened in will be whatever the environment variable $EDITOR is set to. If it's not set nano will be used.
+</details>
+
+<details>
+	<summary><b>dotfm list [DOTFILE...]</b> = list installed dotfiles</summary>
+
+	Multiple or no dotfiles can be specified
+
+	If no DOTFILE... args are passed the all installed dotfiles are listed
+
+	if DOTFILE... args are present, then they should correspond to an alias of an installed dotfile
+</details>
+
+### examples
+
+**Note:** For the following examples, _$DOTFILES_ will be used to address the src folder dotfiles are stored in.
+
+- **install a dotfile** - `dotfm install $DOTFILES/bashrc` = will **ln -s** _$DOTFILES/bashrc_ -> _~/.bashrc_
+- **remove a dotfile** - `dotfm remove bashrc` = will **rm** _~/.bashrc_
+- **edit a dotfile** - `dotfm edit bashrc` = will open _.bashrc_ in _$EDITOR_ or _nano_
+- **list all dotfiles** - `dotfm list` = displays a printout of all the dotfles
+- **list a specific dotfile** - `dotfm list bashrc` = displays a printout of the bashrc dotfile
+	- Alternatively, you could print the files content outside of dotfm like this: `printf "Location,Aliases...\n$(cat ~/.local/share/dotfm/installed.csv)" | column -t -s,`
 
 ---
 
 ## installing dotfm
-- If you **do** plan on modifying _DOTFILE\_LOCATIONS_ after install _dotfm_ (recommended): `sudo make link`. This will install the script as a symlink.
-- If you **don't** plan on modifying _DOTFILE\_LOCATIONS_ after installing _dotfm_: `sudo make install`. This will copy the script.
+
+Make sure you're in the dotfm directory
+
+- If you **do** plan on modifying dotfm after install: `sudo make link`. This will install the script as a symlink.
+- If you **don't** plan on modifying dotfm after install: `sudo make install`. This will copy the script.
 
 ### install location
-By default this will install the python script to _/usr/bin/local/dotfm_.
+
+By default the install location of the python script = _/usr/local/bin/dotfm_.
 
 To change this, just modify _Makefile_ and change the value of _DESTDIR_ to your preferred install location.
 
 ---
 
 ## uninstall dotfm
+
 Just run `sudo make uninstall` while in the same directory as the _Makefile_.
 
 ---
@@ -119,11 +135,11 @@ _[x] = done; [~] = in-progress; [-] = won't do; [ ] = not started;_
 
 _(W) = Will do; (S) = Should do; (C) = Could do;_
 
-- [ ] Change `DOTFILE\_LOCATIONS` to use an external config (C)
+- [x] Change `DOTFILE\_LOCATIONS` to use an external config (C)
 - [ ] Allow a remote git repo to be used for calling dotfile source (W)
 - [ ] Add a double-check to _dotfm remove_(W)
-- [ ] Follow symlinks to list source file locations too (?)
-- [ ] Move the details section above into man pages (with pdf conversion) (S)
+- [x] Follow symlinks to list source file locations too (?)
+- [ ] Move the details section above into man pages, probably use txt2man (with pdf conversion) (S)
 
 Commands:
 - [x] <s>List dotfile locations (W)</s>
@@ -134,5 +150,6 @@ Commands:
 ---
 
 ## authors
+
 - GeaRSiX <gearsix@tuta.io>
 
