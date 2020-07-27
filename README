@@ -5,7 +5,10 @@ SYNOPSIS
   dotfm [-h] [-d] [-v] [-q] COMMAND DOTFILE...
 
 DESCRIPTION
-  dotfm is designed to be simple and easy to use. It's really just a short-hand for managing symlinks of dotfiles (it's also helpful if you don't want to remember or type out the location of a dotfile everytime you want to modify it).
+  dotfm is designed to be simple and easy to use. It's really just a
+  short-hand for managing symlinks of dotfiles (it's also helpful if
+  you don't want to remember or type out the location of a dotfile
+  everytime you want to modify it).
 
 ARGUMENTS
   -h --help		Displays help printout
@@ -15,34 +18,63 @@ ARGUMENTS
 
 COMMANDS
   Multiple DOTFILE args can be passed to each command.
-  install <DOTFILE>...	DOTFILE should be a filepath of the dotfile to install.
-						If the filename of DOTFILE is known, a symlink will be created at the install location (found in KNOWN_LOCATIONS).
-						If the filename is not recognised, then you'll be prompted for an install location an aliases to call the dotfile by.
+  
+  install <DOTFILE>...	DOTFILE should be a filepath of the dotfile to 
+						install.
+						If the filename of DOTFILE is known, a symlink
+						will be created at the install location (found
+						in KNOWN_LOCATIONS).
+						If the filename is not recognised, then you'll
+						be prompted for an install location an aliases
+						to call the dotfile by.
 
-  remove <DOTFILE>...	DOTFILE should be an alias for the dotfile to remove.
-						Remove the file located at the install location of the dotfile with an alias matching DOTFILE. Will only remove if the file has been installed by dotfm (found in DOTFM_CSV_FILE).
-  edit <DOTFILE>...		DOTFILE should be an alias for the dotfile to edit.
-						Open the corresponding DOTFILE in $EDITOR or (if $EDITOR is not set) nano.
-  list [<DOTFILE>...]	DOTFILE is optional, if set it should be an alias of the dotfile to list.
-						Display a table of the install location and aliases of all or specified dotfiles.
+  remove <DOTFILE>...	DOTFILE should be an alias for the dotfile to
+						remove.
+						Remove the file located at the install
+						location of the dotfile with an alias matching
+						DOTFILE. Will only remove if the file has been
+						installed by dotfm (found in DOTFM_CSV_FILE).
+
+  edit <DOTFILE>...		DOTFILE should be an alias for the dotfile to
+						edit.
+						Open the corresponding DOTFILE in $EDITOR or
+						(if $EDITOR is not set) nano.
+
+  list [<DOTFILE>...]	DOTFILE is optional, if set it should be an
+						alias of the dotfile to list.
+						Display a table of the install location and
+						aliases of all or specified dotfiles.
 
 INSTALL
-	Go to the source folder of dotfm and run either "sudo make link" or "sudo make install".
-	The link option will create a symlink of the script from it's current location (useful if you want to modify it frequently).
-	The install option will copy it to the install location (recommended for most users).
+	Go to the source folder of dotfm and run either "sudo make link"
+	or "sudo make install".
 
-	By default the install location of dotfm is /usr/local/bin/dotfm. To modify this, just edit the value of DESTBINDIR in the Makefile.
+	The link option will create a symlink of the script from it's
+	current location (useful if you want to modify it frequently).
+
+	The install option will copy it to the install location
+	(recommended for most users).
+
+	By default the install location of dotfm is /usr/local/bin/dotfm.
+	To modify this, just edit the value of DESTBINDIR in the Makefile.
 
 UNINSTALL
 	Go to the source folder of dotfm and run "sudo make uninstall"
 
-ENVIRONMENT
-	EDITOR	The text editor to edit dotfiles with. If not present, nano will be used.
+ENVIRONMENT VARIABLES
+	EDITOR	The text editor to edit dotfiles with. If not present,
+	nano will be used.
 
-KNOWN DOTFILES
-	I would recommend modifying the "KNOWN_DOTFILES" array in src/dotfm.py to suite your own needs. I've tried to put most of the standard dotfiles in there, however it's not exhaustive (although I do plan on adding to it over-time).
+HINTS
+	I would recommend modifying the "KNOWN_DOTFILES" array in src/
+	dotfm.py to suite your own needs. I've tried to put most of the
+	standard dotfiles in there, however it's not exhaustive (although
+	I do plan on adding to it over-time).
 
-	Doing this will allow you to easily install dotfiles that you often use which aren't currently present KNOWN_DOTFILES (instead of having to specify the install location and aliases for it everytime).
+	Doing this will allow you to easily install dotfiles that you
+	often use which aren't currently present KNOWN_DOTFILES (instead
+	of having to specify the install location and aliases for it
+	everytime).
 
 AUTHORS
 	- gearsix <gearsix@tuta.io>

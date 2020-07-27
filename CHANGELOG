@@ -6,6 +6,7 @@
 - Added code comment header documenting the dotfm_* functions 
 - Now the DOTFILE arg can specify multiple dotfiles
 - updated the README
+- added a manpage (src/dotfm.1), which is installed with dotfm in the Makefile
 
 ### DOTFM CSV FILE
 
