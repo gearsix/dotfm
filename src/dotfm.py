@@ -7,13 +7,6 @@
 # created: 2020-01-15
 # updated: 2020-07-26
 # notes:
-# TODO:
-#   - add handling for duplicate alias names (provide user choice)
-#   - add the option to submit unknown dotfiles to authors (to be appended to KNOWN_DOTFILES)
-#   - add option to install from remote urls
-#   - add function to modify dotfile aliases
-#   - check for existing installed KNOWN_DOTFILES in dotfm_init when creating DOTFM_CSV_FILE ?
-#   - on overwrite during install, check DOTFM_CSV_FILE to see if dfl already exists before appending it
 
 #---------
 # IMPORTS
