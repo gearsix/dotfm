@@ -1,0 +1,19 @@
+LEGEND
+[x] = done; [~] = in-progress; [-] = won't do; [ ] = not started;
+
+(!) = Priority; (W) = Will do; (S) = Should do; (C) = Could do; (?) = Needs investigating;
+
+TODO LIST
+- [x] (W) Use an external file to track installed dotfiles
+- [ ] (W) Allow a remote url to be used for calling dotfile source
+- [ ] (W) Add a double-check to dotfm remove (if not symlink)
+- [x] (?) Follow symlinks to list source file locations too
+- [ ] (S) Move the details section above into man pages, probably use txt2man (with pdf conversion)
+- [x] (W) List dotfile locations
+- [ ] (C) Command to create a dotfile
+- [ ] (W) Command Update dotfile source location
+- [ ] (!) Add handling for duplicate aliases
+- [ ] (C) Allow user to submit unknown dotfile to be added to KNOWN_DOTFILES in the master branch
+- [ ] (C) Check for already existing dotfiles in dotfm_init() when creating DOTFM_CSV_FILE
+- [ ] (W) check DOTFM_CSV_FILE to see if dfl already exists before appending during install
+
