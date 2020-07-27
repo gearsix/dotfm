@@ -1,5 +1,59 @@
 # CHANGELOG
 
+## v2.0.0
+
+- The quiet arg works properly now
+- Added code comment header documenting the dotfm_* functions 
+- Now the DOTFILE arg can specify multiple dotfiles
+- updated the README
+
+### DOTFM CSV FILE
+
+dotfm now tracks dotfiles that it installs symlinks for in a file. This file is currently stored at _~/.local/dotfm/installed.csv_. The file has the following structure:
+
+	<location>,<alias>,<alias>,....
+
+**location** is the location dotfm installed the dotfile to (the symlink pointing to the source dotfile).
+
+**alias** these are strings that dotfm uses to recognise the related dotfile (e.g. you could use "brc" as an alias for your bashrc and call "dotfm edit brc")
+
+### KNOWN DOTFILES
+
+_DOTFILE LOCATIONS_ has been refactored into _KNOWN DOTFILES_, it follows the same structure as the DOTFM CSV FILE (see above).
+
+The purpose of this array is now to act as a knowledge base for all the location to install dotfiles to and any names that they sohuld be recognised under that dotfm recognises.
+
+If a dotfile is within this array, dotfm will know where to install the relevant dotfile automatically and allow you to call it with the preset aliases. Don't be scared to modify this array to modify this to your hearts content.
+
+If a dotfile is not present within this array then you'll be prompted for the install location of the dotfile and any aliases you want to allow dotfm to recognise it under.
+This won't be added to KNOWN DOTFILES, but _will_ be appended to DOTFM CSV FILE.
+
+### dotfm init
+
+This is a function that runs at the start of every runtime, it checks if the _DOTFM CSV FILE_ is present:
+If it is, it's contents are loaded into memory;
+If it isn't, then the user is prompted where they would like to create it and the file is created with itself as the first entry.
+
+### dotfm install
+
+Now if a dotfile is not recognsied in the KNOWN_DOTFILES array, the user will be prompted asking where to install it to and what aliases to recognise it under.
+
+Multiple dotfiles can be passed to _dotfm install_, e.g.
+
+	dotfm install ./bashrc ./profile ./tmux.conf
+
+### dotfm remvoe
+
+dotfm_remove will now also remove the file from the _DOTFM CSV FILE_
+
+### dotfm list
+
+Minor changes to dotfm_list printout format. Will also print even if running in quiet mode.
+
+dotfm_list now **lists all installed dotfiles by default**, and only lists specifc dotfiles if specified.
+
+---
+
 ## v1.0.3
 
 - added "-q", "--quiet" argument, using it reduces printed logs
