@@ -204,7 +204,7 @@ def dotfm_install(dotfile_source):
                 # append to DOTFILE_CSV_FILE and INSTALLED_DOTFILES
                 log_info('appending to installed dotfiles...')
                 with open(DOTFM_CSV_FILE, "a") as dotfm_csv_file:
-                    dotfm_csv = csv.writer(dotfm_csv_file)
+                    dotfm_csv = csv.writer(dotfm_csv_file, lineterminator='\n')
                     dotfm_csv.writerow(dfl)
                     dotfm_csv_file.close()
                 INSTALLED_DOTFILES.append(dfl)
@@ -281,34 +281,19 @@ def dotfm_list(dotfile_aliases):
     """
     log_info('listing dotfm files: {}'.format('all' if len(dotfile_aliases) == 0 else dotfile_aliases))
 
-    found = False
-    printout = [ # string arr, 1 elem for each row
-        '\t{} | Location'.format('Aliases...'.ljust(35)),
-        '\t----------------------------------------------------------------------------',
-    ]
-
-    # list all dotfile_aliases
     if len(dotfile_aliases) == 0:
-        for dfl in INSTALLED_DOTFILES:
-            aliases = ('"'+'", "'.join(dfl[1:])+'"')
-            location = dfl[0]
-            if os.path.realpath(dfl[0]) != location:
-                location += ' -> {}'.format(os.path.realpath(dfl[0]))
-            printout.append('\t{} | {}'.format(aliases.ljust(35), location))
-    # list specified dotfile_aliases
+        os.system('printf "Location,Aliases...\n,\n$(cat {})" | column -t -s,'.format(DOTFM_CSV_FILE))
     else:
-        for dotfile in dotfile_aliases:
+        dotfiles = ''
+        for alias in dotfile_aliases:
             for dfl in INSTALLED_DOTFILES:
-                if dotfile in dfl:
-                    aliases = ('"'+'", "'.join(dfl[1:])+'"')
-                    location = dfl[0]
-                    if os.path.realpath(dfl[0]) != location:
-                        location += ' -> {}'.format(os.path.realpath(dfl[0]))
-                    printout.append('\t{} | {}'.format(aliases.ljust(35), location))
-                    break
-
-    for p in printout:
-        print(p)
+                if alias in dfl:
+                    dotfiles += dfl[0]
+                    for i, a in enumerate(dfl[1:]):
+                        dotfiles += ',{}'.format(a)
+                        if i == len(dfl[1:]) - 1:
+                            dotfiles += '\n'
+        os.system('printf "Location,Aliases...\n,\n{}" | column -t -s,'.format(dotfiles))
 
 #------
 # MAIN
