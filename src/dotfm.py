@@ -203,10 +203,9 @@ def dotfm_install(dotfile_source):
                     os.system('ln -vs {} {}'.format(dotfile_source, dest))
                 # append to DOTFILE_CSV_FILE and INSTALLED_DOTFILES
                 log_info('appending to installed dotfiles...')
-                with open(DOTFM_CSV_FILE, "a", newline='\n', encoding='utf-8') as dotfm_csv_file:
+                with open(DOTFM_CSV_FILE, "a") as dotfm_csv_file:
                     dotfm_csv = csv.writer(dotfm_csv_file)
                     dotfm_csv.writerow(dfl)
-                    dotfm_csv_file.write('\n')
                     dotfm_csv_file.close()
                 INSTALLED_DOTFILES.append(dfl)
                 break
