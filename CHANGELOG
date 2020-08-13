@@ -1,10 +1,18 @@
 # CHANGELOG
 
+## v2.0.2
+
+- updated LICENSE to ISC
+
+---
+
 ## v2.0.1
 
 - updated the "list" command to use unix system commands: printf, cat, column. Provides a neater, more reliable printout and makes the implementation tidier.
 - DOTFM_CSV_FILE lines are now terminated with '\n' (previously '\r\n')
 - Install & Uninstall (with Makefile) will now prompt for overwriting & removing files
+
+---
 
 ## v2.0.0
 
