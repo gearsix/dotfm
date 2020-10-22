@@ -26,7 +26,7 @@ HOME = os.getenv('HOME')                # $HOME (where user's dotfiles are store
 USER = os.getenv('USER')                # $USER calling dotfm
 ARGS = sys.argv                         # parsed arguments
 EDITOR = os.getenv('EDITOR') or 'nano'  # text editor to modify dotfiles with
-VERSION = 'v2.0.0'
+VERSION = 'v2.0.5'
 DOTFM_CSV_FILE = '/home/{}/.local/share/dotfm/installed.csv'.format(USER)
 KNOWN_DOTFILES = [ # dotfiles that dotfm knows by default
     # install location, aliases...
@@ -168,7 +168,7 @@ def dotfm_init():
         dotfm_csv.close()
 
 def dotfm_install(dotfile_source):
-    """ check "KNOWN_DOTFILES" to see if an alias matches "dotfile" basename,
+    """ Check "KNOWN_DOTFILES" to see if an alias matches "dotfile" basename,
         if it does create a symbolic link from "dotfile" to the matching
         "KNOWN_DOTFILES" location (index 0).
 
@@ -244,7 +244,7 @@ def dotfm_install(dotfile_source):
                 'changes take effect')
 
 def dotfm_remove(alias):
-    """remove a dotfile (from it's known location) and remove it from
+    """ Remove a dotfile (from it's known location) and remove it from
         DOTFM_CSV_FILE
     
         @param alias = an alias matching the known aliases of the dotfile to
@@ -272,7 +272,7 @@ def dotfm_remove(alias):
         log_info('could not find dotfile matching alias "{}"'.format(alias))
 
 def dotfm_edit(dotfile_alias):
-    """ open dotfile with alias matching "dotfm_alias" in EDITOR
+    """ Open dotfile with alias matching "dotfm_alias" in EDITOR
         @param dotfile_alias = an alias of the dotfile to open
     """
     log_info('editing {}...'.format(dotfile_alias))
@@ -300,7 +300,7 @@ def dotfm_edit(dotfile_alias):
             os.path.basename(dotfile_alias)))
 
 def dotfm_list(dotfile_aliases):
-    """ list specified dotfile aliases and install location (displays all if
+    """ List specified dotfile aliases and install location (displays all if
         none are specified).
         @param dotfile_aliases = an array of dotfile aliases to list, if
         len == 0 then all will be printed.
