@@ -28,7 +28,8 @@ ARGS = sys.argv                         # parsed arguments
 EDITOR = os.getenv('EDITOR') or 'nano'  # text editor to modify dotfiles with
 VERSION = 'v2.0.0'
 DOTFM_CSV_FILE = '/home/{}/.local/share/dotfm/installed.csv'.format(USER)
-KNOWN_DOTFILES = [ # dotfiles that dotfm knows by default (install location, aliases...)
+KNOWN_DOTFILES = [ # dotfiles that dotfm knows by default
+    # install location, aliases...
     [DOTFM_CSV_FILE, 'dotfm', 'dotfm.csv'],
     # bashrc
     ['{}/.bashrc'.format(HOME), '.bashrc', 'bashrc'],
@@ -87,16 +88,23 @@ def parse_arguments():
     global ARGS
     valid_commands = ['install', 'remove', 'edit', 'list']
     
-    parser = argparse.ArgumentParser(description='a simple tool to help you manage your dot files.')
-    parser.add_argument('cmd', metavar='COMMAND', choices=valid_commands, help='the dotfm COMMAND to execute: {}'.format(valid_commands))
-    parser.add_argument('dotfile', metavar='DOTFILE', nargs=argparse.REMAINDER, help='the target dotfile to execute COMMAND on')
-    parser.add_argument('-d', '--debug', action='store_true', help='display debug logs')
-    parser.add_argument('-v', '--version', action='version', version='%(prog)s {}'.format(VERSION))
-    parser.add_argument('-q', '--quiet', action='store_true', help='tell dotfm to shutup')
+    parser = argparse.ArgumentParser(
+            description='a simple tool to help you manage your dot files.')
+    parser.add_argument('cmd', metavar='COMMAND', choices=valid_commands,
+            help='the dotfm COMMAND to execute: {}'.format(valid_commands))
+    parser.add_argument('dotfile', metavar='DOTFILE', nargs=argparse.REMAINDER,
+            help='the target dotfile to execute COMMAND on')
+    parser.add_argument('-d', '--debug', action='store_true',
+            help='display debug logs')
+    parser.add_argument('-v', '--version', action='version',
+            version='%(prog)s {}'.format(VERSION))
+    parser.add_argument('-q', '--quiet', action='store_true',
+            help='tell dotfm to shutup')
     ARGS = parser.parse_args()
 
 def dotfm_init():
-    """ If DOTFM_CSV_FILE does not exist, create it. If it does, load it's values into KNOWN_DOTFILES
+    """ If DOTFM_CSV_FILE does not exist, create it. If it does, load it's
+        values into KNOWN_DOTFILES.
         Will prompt the user where they want the file to be created at,
         if that location does not match DOTFM_CSV_FILE, DOTFM_CSV_FILE 
         will be a symbolic link to that location.
@@ -109,16 +117,19 @@ def dotfm_init():
         # get location to create dotfm.csv at
         location = -1
         while location == -1:
-            location = input('where would you like to store the dotfm csv file (default: {})? '.format(DOTFM_CSV_FILE))
+            location = input('where would you like to store the ' \
+                    'dotfm csv file (default: {})? '.format(DOTFM_CSV_FILE))
             # prompt user to overwrite existing dotfm.csv file
             if len(location) > 0 and os.path.exists(location):
                 yn = ''
                 while yn == '':
-                    yn = input('{} already exists, overwrite (y/n)? '.format(location))
+                    yn = input('{} already exists, ' \
+                            'overwrite (y/n)? '.format(location))
                     if yn[0] == 'y':
                         log_info('overwriting {}'.format(location))
                     elif yn[0] == 'n':
-                        log_info('{} already exists, using default location ({})'.format(DOTFILE_LOCATION))
+                        log_info('{} already exists, using default ' \
+                                'location ({})'.format(DOTFILE_LOCATION))
                         location = DOTFM_CSV_FILE
                     else:
                         yn = ''
@@ -144,7 +155,8 @@ def dotfm_init():
         # create dotfm.csv symbolic link
         os.system('mkdir -p {}'.format(os.path.dirname(DOTFM_CSV_FILE)))
         if os.path.abspath(location) != DOTFM_CSV_FILE:
-            os.system('ln -fsv {} {}'.format(os.path.abspath(location), DOTFM_CSV_FILE))
+            os.system('ln -fsv {} {}'.format(os.path.abspath(location),
+                DOTFM_CSV_FILE))
 
         # append to INSTALLED_DOTFILES
         INSTALLED_DOTFILES.append(KNOWN_DOTFILES[0])
@@ -156,10 +168,12 @@ def dotfm_init():
         dotfm_csv.close()
 
 def dotfm_install(dotfile_source):
-    """ check "KNOWN_DOTFILES" to see if an alias matches "dotfile" basename, if it does create a
-        symbolic link from "dotfile" to the matching "KNOWN_DOTFILES" location (index 0).
+    """ check "KNOWN_DOTFILES" to see if an alias matches "dotfile" basename,
+        if it does create a symbolic link from "dotfile" to the matching
+        "KNOWN_DOTFILES" location (index 0).
 
-        If file at matching "KNOWN_DOTFILES" location exists, prompt user to overwrite it.
+        If file at matching "KNOWN_DOTFILES" location exists, prompt user to
+        overwrite it.
 
         @param dotfile = filepath to the dotfile to install
     """
@@ -171,7 +185,8 @@ def dotfm_install(dotfile_source):
         if found == True:
             break
         for alias in dfl[1:]:
-            if os.path.basename(dotfile_source) == alias: # compare dotfile base file name
+            # compare dotfile base file name
+            if os.path.basename(dotfile_source) == alias:
                 found = True
                 # make sure dotfile dir exists
                 dest = os.path.abspath(dfl[0])
@@ -191,7 +206,7 @@ def dotfm_install(dotfile_source):
                             os.system('ln -s {} {}'.format(dotfile_source, dest))
                         elif oca[0] == 'c': # print diff between existing file & dotfile
                             log_info('comparing {} to {}'.format(dotfile_source, dest))
-                            os.system('diff -y {} {}'.format(dotfile_source, dest))  # maybe use vimdiff ?
+                            os.system('diff -y {} {}'.format(dotfile_source, dest))  # use vimdiff ?
                             oca = ''
                         elif oca[0] == 'a': # abort install
                             log_info('aborting install')
@@ -212,22 +227,28 @@ def dotfm_install(dotfile_source):
 
     # handle unrecognised dotfile alias
     if found == False:
-        log_info('dotfile not known by dotfm ({})'.format(os.path.basename(dotfile_source)))
+        log_info('dotfile not known by dotfm ({})'.format(
+            os.path.basename(dotfile_source)))
         path = ''
         while path == '':
-            path = input('where should dotfm install "{}" (e.g. /home/{}/.bashrc)? '.format(dotfile_source, USER))
-            aliases = input('what aliases would you like to assign to this dotfile (e.g. .bashrc bashrc brc): ')
+            path = input('where should dotfm install "{}" ' \
+                    '(e.g. /home/{}/.bashrc)? '.format(dotfile_source, USER))
+            aliases = input('what aliases would you like to assign to this ' \
+                    'dotfile (e.g. .bashrc bashrc brc): ')
             dfl = aliases.split(' ')
             dfl.insert(0, path)
-            KNOWN_DOTFILES.append(dfl) # will be forgotten at the end of runtime
+            KNOWN_DOTFILES.append(dfl) # forgotten at the end of runtime
             dotfm_install(dotfile_source)
     else:
-        log_info('success - you might need to re-open the terminal to see changes take effect')
+        log_info('success - you might need to re-open the terminal to see ' \
+                'changes take effect')
 
 def dotfm_remove(alias):
-    """remove a dotfile (from it's known location) and remove it from DOTFM_CSV_FILE
+    """remove a dotfile (from it's known location) and remove it from
+        DOTFM_CSV_FILE
     
-        @param alias = an alias matching the known aliases of the dotfile to remove
+        @param alias = an alias matching the known aliases of the dotfile to
+        remove
     """
     log_info('removing {}...'.format(alias))
 
@@ -261,7 +282,8 @@ def dotfm_edit(dotfile_alias):
         if dotfile_alias in dfl:
             target = '{}'.format(dfl[0])
             os.system('{} {}'.format(EDITOR, target))
-            log_info('success - you might need to re-open the terminal to see changes take effect')
+            log_info('success - you might need to re-open the terminal to '\
+                    'see changes take effect')
             break
         for name in dfl[0]:
             if os.path.basename(dotfile_alias) == name:
@@ -269,20 +291,26 @@ def dotfm_edit(dotfile_alias):
                 target = '{}'.format(os.path.abspath(dfl[1]))
                 log_info('found {}'.format(target))
                 os.system('{} {}'.format(EDITOR, target))
-                log_info('success - you might need to re-open the terminal to see changes take effect')
+                log_info('success - you might need to re-open the terminal '\
+                        'to see changes take effect')
                 break
 
     if target == '':
-        error_exit('could not find alias {} in installed.csv'.format(os.path.basename(dotfile_alias)))
+        error_exit('could not find alias {} in installed.csv'.format(
+            os.path.basename(dotfile_alias)))
 
 def dotfm_list(dotfile_aliases):
-    """ list specified dotfile aliases and install location (displays all if none are specified)
-        @param dotfile_aliases = an array of dotfile aliases to list, if len == 0 then all will be printed
+    """ list specified dotfile aliases and install location (displays all if
+        none are specified).
+        @param dotfile_aliases = an array of dotfile aliases to list, if
+        len == 0 then all will be printed.
     """
-    log_info('listing dotfm files: {}'.format('all' if len(dotfile_aliases) == 0 else dotfile_aliases))
+    log_info('listing dotfm files: {}'.format(
+        'all' if len(dotfile_aliases) == 0 else dotfile_aliases))
 
     if len(dotfile_aliases) == 0:
-        os.system('printf "Location,Aliases...\n,\n$(cat {})" | column -t -s,'.format(DOTFM_CSV_FILE))
+        os.system('printf "Location,Aliases...\n,\n$(cat {})" | ' \
+                'column -t -s,'.format(DOTFM_CSV_FILE))
     else:
         dotfiles = ''
         for alias in dotfile_aliases:
@@ -293,7 +321,8 @@ def dotfm_list(dotfile_aliases):
                         dotfiles += ',{}'.format(a)
                         if i == len(dfl[1:]) - 1:
                             dotfiles += '\n'
-        os.system('printf "Location,Aliases...\n,\n{}" | column -t -s,'.format(dotfiles))
+        os.system('printf "Location,Aliases...\n,\n{}" | ' \
+                'column -t -s,'.format(dotfiles))
 
 #------
 # MAIN
@@ -306,7 +335,8 @@ if __name__ == '__main__':
 
     # init LOGGER
     log_lvl = logging.INFO
-    log_fmt = '%(lineno)-4s {} | %(asctime)s | %(levelname)-7s | %(message)s'.format(NAME)
+    log_fmt = '%(lineno)-4s {} | %(asctime)s | %(levelname)-7s | ' \
+            '%(message)s'.format(NAME)
     if ARGS.debug == True:
         LOGGER.debug('displaying debug logs')
         log_lvl = logging.DEBUG
