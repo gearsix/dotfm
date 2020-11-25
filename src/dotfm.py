@@ -86,7 +86,7 @@ def error_exit(message):
 
 def parse_arguments():
     global ARGS
-    valid_commands = ['install', 'remove', 'edit', 'list']
+    valid_commands = ['install', 'update', 'remove', 'edit', 'list']
     
     parser = argparse.ArgumentParser(
             description='a simple tool to help you manage your dot files.')
@@ -155,7 +155,7 @@ def dotfm_init():
         # create dotfm.csv symbolic link
         os.system('mkdir -p {}'.format(os.path.dirname(DOTFM_CSV_FILE)))
         if os.path.abspath(location) != DOTFM_CSV_FILE:
-            os.system('ln -fsv {} {}'.format(os.path.abspath(location),
+            os.system('ln -isv {} {}'.format(os.path.abspath(location),
                 DOTFM_CSV_FILE))
 
         # append to INSTALLED_DOTFILES
@@ -242,6 +242,34 @@ def dotfm_install(dotfile_source):
     else:
         log_info('success - you might need to re-open the terminal to see ' \
                 'changes take effect')
+
+def dotfm_update(dotfile_alias, new_source):
+    """ Update the source location that the dotfile symlink of an already
+        installed dotfile points to. If the dotfile_alias does not exist in
+        DOTFM_CSV_FILE, dotfm_install is called instead.
+
+        @param alias = an alias matching the known aliases of the dotfile to
+        update
+        @param new_source = the new filepath to point the dotfile symlink to
+    """
+
+    log_info('updating {} -> {}...'.format(dotfile_alias, new_source))
+
+    found = -1
+    for i, dfl in enumerate(INSTALLED_DOTFILES):
+        if dotfile_alias in dfl:
+            found = i
+            break
+
+    if found != -1:
+        # stat new_source
+        if os.path.exists(new_source):
+            os.system('ln -isv {} {}'.format(new_source, dfl[0]))
+        else:
+            log_info('{} does not exist'.format(new_source))
+    else:
+        log_info('could not find dotfile matching alias "{}"'.format(
+            dotfile_alias))
 
 def dotfm_remove(alias):
     """ Remove a dotfile (from it's known location) and remove it from
@@ -350,6 +378,8 @@ if __name__ == '__main__':
     if command == 'install':
         for d in dotfile:
             dotfm_install(os.path.abspath(d))
+    elif command == 'update':
+        dotfm_update(dotfile[0], dotfile[1])
     elif command == 'remove':
         for d in dotfile:
             dotfm_remove(d)
