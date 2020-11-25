@@ -11,7 +11,7 @@ TODO LIST
 - [x] (S) Move the README into man page, probably use txt2man
 - [x] (W) List dotfile locations
 - [ ] (C) Command to create a dotfile
-- [ ] (W) Command Update dotfile source location
+- [x] (W) Command to update dotfile source location
 - [ ] (!) Add handling for duplicate aliases
 - [ ] (C) Allow user to submit unknown dotfile to be added to KNOWN_DOTFILES in the master branch
 - [ ] (C) Check for already existing dotfiles in dotfm_init() when creating DOTFM_CSV_FILE
