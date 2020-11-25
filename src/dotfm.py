@@ -5,7 +5,7 @@
 #==========================
 # authors: gearsix
 # created: 2020-01-15
-# updated: 2020-07-26
+# updated: 2020-11-25
 # notes:
 
 #---------
@@ -26,7 +26,7 @@ HOME = os.getenv('HOME')                # $HOME (where user's dotfiles are store
 USER = os.getenv('USER')                # $USER calling dotfm
 ARGS = sys.argv                         # parsed arguments
 EDITOR = os.getenv('EDITOR') or 'nano'  # text editor to modify dotfiles with
-VERSION = 'v2.0.5'
+VERSION = 'v2.1.0'
 DOTFM_CSV_FILE = '/home/{}/.local/share/dotfm/installed.csv'.format(USER)
 KNOWN_DOTFILES = [ # dotfiles that dotfm knows by default
     # install location, aliases...
