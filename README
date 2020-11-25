@@ -30,9 +30,9 @@ COMMANDS
     an install location and aliases to reference the dotfile by when
     using dotfm.
 
-  update <ALIAS> <NEW LOCATION>
+  update <ALIAS> <LOCATION>	
     update the location that a previously installed dotfile (with an
-	alias matching ALIAS) symlink points to (sets it to point to NEW
+	alias matching ALIAS) symlink points to (sets it to point to
 	LOCATION).
 
   remove <DOTFILE>...	
