@@ -1,31 +1,52 @@
 # CHANGELOG
 
+## v2.1.1
+
+- updated the CHANGELOG
+- `dotfm remove` now calls `rm -iv` (previously `rm -v`), to be safe(r).
+
 ---
 
-### v2.0.5
+## v2.1.0
+
+- added the `dotfm update` command for updating a dotfile's source location
+
+---
+
+## v2.0.5
 
 - added banner.svg
 
-### v2.0.4
+---
+
+## v2.0.4
 
 - updated the README & man file
 - formatting fixed in the README
 
-### v2.0.3
+---
+
+## v2.0.3
 
 - compressed logo.png
 
-### v2.0.2
+---
+
+## v2.0.2
 
 - updated LICENSE to ISC
 - added awesome logo from [Marta Dias](https://www.instagram.com/marta.dias.z/)
 - minor fix in Makefile
 
-### v2.0.1
+---
+
+## v2.0.1
 
 - updated the "list" command to use unix system commands: printf, cat, column. Provides a neater, more reliable printout and makes the implementation tidier.
 - DOTFM_CSV_FILE lines are now terminated with '\n' (previously '\r\n')
 - Install & Uninstall (with Makefile) will now prompt for overwriting & removing files
+
+---
 
 ## v2.0.0
 
@@ -82,7 +103,7 @@ dotfm_list now **lists all installed dotfiles by default**, and only lists speci
 
 ---
 
-### v1.0.3
+## v1.0.3
 
 - added "-q", "--quiet" argument, using it reduces printed logs
   "dotfm list" will still print the file location (one line each), e.g.:
