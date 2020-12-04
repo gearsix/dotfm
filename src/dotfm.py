@@ -289,7 +289,7 @@ def dotfm_remove(alias):
     if found != -1:
         # remove dotfile
         target = '{}'.format(os.path.abspath(dfl[0]))
-        os.system('rm -v {}'.format(target))
+        os.system('rm -iv {}'.format(target))
         # remove from installed
         del INSTALLED_DOTFILES[found]
         with open(DOTFM_CSV_FILE, 'w') as dotfm_file:
