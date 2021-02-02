@@ -4,6 +4,7 @@ LEGEND
 (!) = Priority; (W) = Will do; (S) = Should do; (C) = Could do; (?) = Needs investigating;
 
 TODO LIST
+- [ ] (W) Add support for using with dotfiles that haven't been installed using dotfm
 - [x] (W) Use an external file to track installed dotfiles
 - [ ] (W) Allow a remote url to be used for calling dotfile source
 - [ ] (W) Add a double-check to dotfm remove (if not symlink)
