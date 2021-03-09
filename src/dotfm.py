@@ -363,8 +363,7 @@ if __name__ == '__main__':
 
     # init LOGGER
     log_lvl = logging.INFO
-    log_fmt = '%(lineno)-4s {} | %(asctime)s | %(levelname)-7s | ' \
-            '%(message)s'.format(NAME)
+    log_fmt = '%(levelname)-7s | %(message)s'.format(NAME)
     if ARGS.debug == True:
         LOGGER.debug('displaying debug logs')
         log_lvl = logging.DEBUG
