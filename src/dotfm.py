@@ -337,7 +337,7 @@ def dotfm_list(dotfile_aliases):
         'all' if len(dotfile_aliases) == 0 else dotfile_aliases))
 
     if len(dotfile_aliases) == 0:
-        os.system('printf "Location,Aliases...\n,\n$(cat {})" | ' \
+        os.system('printf "LOCATION,ALIASES...\n$(cat {})" | ' \
                 'column -t -s,'.format(DOTFM_CSV_FILE))
     else:
         dotfiles = ''
@@ -349,7 +349,7 @@ def dotfm_list(dotfile_aliases):
                         dotfiles += ',{}'.format(a)
                         if i == len(dfl[1:]) - 1:
                             dotfiles += '\n'
-        os.system('printf "Location,Aliases...\n,\n{}" | ' \
+        os.system('printf "LOCATIOn,ALIASES...\n{}" | ' \
                 'column -t -s,'.format(dotfiles))
 
 #------
@@ -363,8 +363,7 @@ if __name__ == '__main__':
 
     # init LOGGER
     log_lvl = logging.INFO
-    log_fmt = '%(lineno)-4s {} | %(asctime)s | %(levelname)-7s | ' \
-            '%(message)s'.format(NAME)
+    log_fmt = '%(levelname)-7s | %(message)s'
     if ARGS.debug == True:
         LOGGER.debug('displaying debug logs')
         log_lvl = logging.DEBUG
