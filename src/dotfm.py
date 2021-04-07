@@ -198,21 +198,22 @@ def dotfm_install(dotfile_source):
                     oca = ''
                     while oca == '':
                         oca = input('[o]verwrite/[c]ompare/[a]bort? ')
-                        if oca[0] == 'o': # overwrite existing file
-                            log_info('overwriting {} with {}'.format(dest, dotfile_source))
-                            log_info('backup {} -> {}.bak'.format(dest, dest))
-                            os.system('mv {} {}.bak'.format(dest, dest))
-                            log_info('linking {} -> {}'.format(dest, dotfile_source)) 
-                            os.system('ln -s {} {}'.format(dotfile_source, dest))
-                        elif oca[0] == 'c': # print diff between existing file & dotfile
-                            log_info('comparing {} to {}'.format(dotfile_source, dest))
-                            os.system('diff -y {} {}'.format(dotfile_source, dest))  # use vimdiff ?
-                            oca = ''
-                        elif oca[0] == 'a': # abort install
-                            log_info('aborting install')
-                            sys.exit()
-                        else:
-                            oca = ''
+                        if len(oca) > 0:
+                            if oca[0] == 'o': # overwrite existing file
+                                log_info('overwriting {} with {}'.format(dest, dotfile_source))
+                                log_info('backup {} -> {}.bak'.format(dest, dest))
+                                os.system('mv {} {}.bak'.format(dest, dest))
+                                log_info('linking {} -> {}'.format(dest, dotfile_source)) 
+                                os.system('ln -s {} {}'.format(dotfile_source, dest))
+                            elif oca[0] == 'c': # print diff between existing file & dotfile
+                                log_info('comparing {} to {}'.format(dotfile_source, dest))
+                                os.system('diff -y {} {}'.format(dotfile_source, dest))  # use vimdiff ?
+                                oca = ''
+                            elif oca[0] == 'a': # abort install
+                                log_info('aborting install')
+                                sys.exit()
+                            else:
+                                oca = ''
                 # create symbolic link to dotfile
                 else:
                     os.system('ln -vs {} {}'.format(dotfile_source, dest))
