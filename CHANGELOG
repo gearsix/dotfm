@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## v2.1.2
+
+- added `-p` to mkdir calls in Makefile to avoid failure when path exists
+- tidied up logging
+- bugfix when returned input prompt value is empty
+
+---
+
 ## v2.1.1
 
 - updated the CHANGELOG
