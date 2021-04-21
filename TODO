@@ -16,5 +16,5 @@ TODO LIST
 - [ ] (!) Add handling for duplicate aliases
 - [ ] (C) Allow user to submit unknown dotfile to be added to KNOWN_DOTFILES in the master branch
 - [ ] (C) Check for already existing dotfiles in dotfm_init() when creating DOTFM_CSV_FILE
-- [ ] (W) check DOTFM_CSV_FILE to see if dfl already exists before appending during install
+- [x] (W) Allow the user to set install options for known dotfiles
 

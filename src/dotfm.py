@@ -26,7 +26,7 @@ HOME = os.getenv('HOME')                # $HOME (where user's dotfiles are store
 USER = os.getenv('USER')                # $USER calling dotfm
 ARGS = sys.argv                         # parsed arguments
 EDITOR = os.getenv('EDITOR') or 'nano'  # text editor to modify dotfiles with
-VERSION = 'v2.1.0'
+VERSION = 'v2.1.2'
 DOTFM_CSV_FILE = '/home/{}/.local/share/dotfm/installed.csv'.format(USER)
 KNOWN_DOTFILES = [ # dotfiles that dotfm knows by default
     # install location, aliases...
@@ -94,6 +94,8 @@ def parse_arguments():
             help='the dotfm COMMAND to execute: {}'.format(valid_commands))
     parser.add_argument('dotfile', metavar='DOTFILE', nargs=argparse.REMAINDER,
             help='the target dotfile to execute COMMAND on')
+    parser.add_argument('-s', '--skip', action='store_true',
+            help='skip any user prompts and use default values where possible')
     parser.add_argument('-d', '--debug', action='store_true',
             help='display debug logs')
     parser.add_argument('-v', '--version', action='version',
@@ -180,81 +182,71 @@ def dotfm_install(dotfile_source):
     log_info('installing {}...'.format(dotfile_source))
 
     # check if dotfile matches an alias in KNOWN_DOTFILES
-    found = False
-    for dfl in KNOWN_DOTFILES:
-        if found == True:
-            break
-        for alias in dfl[1:]:
-            # compare dotfile base file name
+    found = -1
+    for d, dfl in enumerate(KNOWN_DOTFILES):
+        for a, alias in enumerate(dfl[1:]):
             if os.path.basename(dotfile_source) == alias:
-                found = True
-                # double-check the user wants it installed to the default location
-                inp = ''
-                dest = os.path.abspath(dfl[0])
-                while inp == '':
-                    inp = input('install location (default: {}) '.format(dest))
-                    if len(inp) == 0:
-                        inp = dest
-                    else:
-                        print(inp)
-                        if inp.find('~') != -1:
-                            inp = inp.replace('~', HOME)
-                        print(inp)
-                        dest = inp
-                # make sure dotfile dir exists
-                if not os.path.exists(os.path.dirname(dest)):
-                    os.system('mkdir -vp {}'.format(dest))
-                # check if file already exists and prompt for action if it does
-                if os.path.lexists(dest):
-                    LOGGER.warning('{} already exists!'.format(dest))
-                    oca = ''
-                    while oca == '':
-                        oca = input('[o]verwrite/[c]ompare/[a]bort? ')
-                        if len(oca) > 0:
-                            if oca[0] == 'o': # overwrite existing file
-                                log_info('overwriting {} with {}'.format(dest, dotfile_source))
-                                log_info('backup {} -> {}.bak'.format(dest, dest))
-                                os.system('mv {} {}.bak'.format(dest, dest))
-                                log_info('linking {} -> {}'.format(dest, dotfile_source)) 
-                                os.system('ln -s {} {}'.format(dotfile_source, dest))
-                            elif oca[0] == 'c': # print diff between existing file & dotfile
-                                log_info('comparing {} to {}'.format(dotfile_source, dest))
-                                os.system('diff -y {} {}'.format(dotfile_source, dest))  # use vimdiff ?
-                                oca = ''
-                            elif oca[0] == 'a': # abort install
-                                log_info('aborting install')
-                                sys.exit()
-                            else:
-                                oca = ''
-                # create symbolic link to dotfile
-                else:
-                    os.system('ln -vs {} {}'.format(dotfile_source, dest))
-                # append to DOTFILE_CSV_FILE and INSTALLED_DOTFILES
-                log_info('appending to installed dotfiles...')
-                with open(DOTFM_CSV_FILE, "a") as dotfm_csv_file:
-                    dotfm_csv = csv.writer(dotfm_csv_file, lineterminator='\n')
-                    dotfm_csv.writerow(dfl)
-                    dotfm_csv_file.close()
-                INSTALLED_DOTFILES.append(dfl)
-                break
+                found = d
 
-    # handle unrecognised dotfile alias
-    if found == False:
-        log_info('dotfile not known by dotfm ({})'.format(
-            os.path.basename(dotfile_source)))
-        path = ''
-        while path == '':
-            path = input('where should dotfm install "{}" ' \
-                    '(e.g. /home/{}/.bashrc)? '.format(dotfile_source, USER))
-            aliases = input('what aliases would you like to assign to this ' \
-                    'dotfile (e.g. .bashrc bashrc brc): ')
-            dfl = aliases.split(' ')
-            dfl.insert(0, path)
-            KNOWN_DOTFILES.append(dfl) # forgotten at the end of runtime
-            dotfm_install(dotfile_source)
-    else:
-        log_info('success - you might need to re-open the terminal to see ' \
-                'changes take effect')
+    # prompt for location
+    dest = ''
+    if found != -1:
+        dest = os.path.abspath(KNOWN_DOTFILES[found][0])
+    if len(dest) == 0 or ARGS.skip == False:
+        default = dest
+        dest = ''
+        while dest == '':
+            dest = input('install location ({})? '.format('default: {}'.format(default) if len(default) > 0 else ''))
+            if len(dest) == 0 and len(default) > 0:
+                dest = default
+            elif dest.find('~') != -1:
+                dest = dest.replace('~', HOME)
+    # prompt for aliases
+    aliases = []
+    if found != -1:
+        aliases = KNOWN_DOTFILES[found][1:]
+    if len(aliases) == 0 or ARGS.skip == False:
+        default = aliases
+        aliases = []
+        while len(aliases) == 0:
+            inp = input('aliases to call dotfile by ({})? '.format('default: {}'.format(default) if len(default) > 0 else ''))
+            if len(inp) > 0:
+                aliases = inp.split(' ')
+            elif len(default) > 0:
+                aliases = default
+    # make sure dotfile dir exists
+    if not os.path.exists(os.path.dirname(dest)):
+        os.system('mkdir -vp {}'.format(dest))
+    # check if file already exists and prompt for action if it does
+    if os.path.lexists(dest):
+        oca = ''
+        while oca == '':
+            oca = input('{} already exists, [o]verwrite/[c]ompare/[a]bort? '.format(dest))
+            if oca[0] == 'o': # overwrite existing file
+                log_info('overwriting {}'.format(dest))
+                os.system('rm {}'.format(dest))
+            elif oca[0] == 'c': # print diff between existing file & dotfile
+                log_info('comparing {} to {}'.format(dotfile_source, dest))
+                os.system('diff -bys {} {}'.format(dotfile_source, dest))  # use vimdiff ?
+                oca = ''
+            elif oca[0] == 'a': # abort install
+                log_info('aborting install')
+                sys.exit()
+            else:
+                oca = ''
+    # create symbolic link to dotfile
+    os.system('ln -vs {} {}'.format(dotfile_source, dest))
+    # append to DOTFILE_CSV_FILE and INSTALLED_DOTFILES
+    log_info('appending to installed dotfiles...')
+    dfl = aliases
+    dfl.insert(0, dest)
+    with open(DOTFM_CSV_FILE, "a") as dotfm_csv_file:
+        dotfm_csv = csv.writer(dotfm_csv_file, lineterminator='\n')
+        dotfm_csv.writerow(dfl)
+        dotfm_csv_file.close()
+    INSTALLED_DOTFILES.append(dfl)
+
+    log_info('success - you might need to re-open the terminal to see changes take effect')
 
 def dotfm_update(dotfile_alias, new_source):
     """ Update the source location that the dotfile symlink of an already
