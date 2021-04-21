@@ -31,45 +31,30 @@ DOTFM_CSV_FILE = '/home/{}/.local/share/dotfm/installed.csv'.format(USER)
 KNOWN_DOTFILES = [ # dotfiles that dotfm knows by default
     # install location, aliases...
     [DOTFM_CSV_FILE, 'dotfm', 'dotfm.csv'],
-    # bashrc
     ['{}/.bashrc'.format(HOME), '.bashrc', 'bashrc'],
     ['{}/.bash_profile'.format(HOME), '.bash_profile', 'bash_profile'],
     ['{}/.profile'.format(HOME), '.profile', 'profile'],
-    # zshell
     ['{}/.zshrc'.format(HOME), '.zshrc', 'zshrc'],
     ['{}/.zprofile'.format(HOME), '.zprofile', 'zprofile'],
     ['{}/.zshenv'.format(HOME), '.zshenv', 'zshenv'],
-    # ssh
     ['{}/.ssh/config'.format(HOME), 'ssh_config'],
-    # vim
     ['{}/.vimrc'.format(HOME), '.vimrc', 'vimrc'],
-    # neovim
     ['{}/.config/nvim/init.vim'.format(HOME), 'init.vim', 'nvimrc'],
-    # git
     ['{}/.gitconfig'.format(HOME), '.gitconfig', 'gitconfig'],
     ['{}/.gitmessage'.format(HOME), '.gitmessage', 'gitmessage'],
     ['{}/.gitignore'.format(HOME), '.gitignore', 'gitignore'],
-    # ruby
     ['{}/.gemrc'.format(HOME), '.gemrc', 'gemrc'],
-    # tmux
     ['{}/.tmux.conf'.format(HOME), 'tmux.conf', 'tmux.conf'],
-    # xdg 
     ['{}/.config/user-dirs.dirs'.format(HOME), 'user-dirs.dirs', 'xdg-user-dirs'],
     ['{}/.xinitrc'.format(HOME), '.xinitrc', 'xinitrc'],
-    # ranger
     ['{}/.config/rc.conf'.format(HOME), 'rc.conf', 'ranger.conf', 'ranger.cfg'],
-    # neofetch
     ['{}/.config/neofetch/config'.format(HOME), 'config', 'neofetch.conf', 'neofetch.cfg'],
-    # sway
     ['{}/.config/sway/config'.format(HOME), 'config', 'sway.cfg', 'sway.conf'],
-    # awesome
     ['{}/.config/awesome/rc.lua'.format(HOME), 'rc.lua', 'awesomerc'],
-    # i3
     ['{}/.config/i3/config'.format(HOME), 'config', 'i3.conf', 'i3.cfg', 'i3'],
-    # emacs
     ['{}/.emacs'.format(HOME), '.emacs', 'emacs'],
-    # misc
-    ['{}/.inputrc'.format(HOME), '.inputrc', 'inputrc']
+    ['{}/.inputrc'.format(HOME), '.inputrc', 'inputrc'],
+    ['{}/.sfeed'.format(HOME), '.sfeedrc', 'sfeedrc'],
 ]
 INSTALLED_DOTFILES = [] # appended to during dotfm_init
 
