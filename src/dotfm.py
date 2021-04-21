@@ -188,8 +188,20 @@ def dotfm_install(dotfile_source):
             # compare dotfile base file name
             if os.path.basename(dotfile_source) == alias:
                 found = True
-                # make sure dotfile dir exists
+                # double-check the user wants it installed to the default location
+                inp = ''
                 dest = os.path.abspath(dfl[0])
+                while inp == '':
+                    inp = input('install location (default: {}) '.format(dest))
+                    if len(inp) == 0:
+                        inp = dest
+                    else:
+                        print(inp)
+                        if inp.find('~') != -1:
+                            inp = inp.replace('~', HOME)
+                        print(inp)
+                        dest = inp
+                # make sure dotfile dir exists
                 if not os.path.exists(os.path.dirname(dest)):
                     os.system('mkdir -vp {}'.format(dest))
                 # check if file already exists and prompt for action if it does
