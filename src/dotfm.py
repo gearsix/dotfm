@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
 #=========================
 # dotfm - dotfile manager
@@ -96,6 +96,34 @@ def parseargs():
             help='the target dotfile to execute COMMAND on')
     return parser.parse_args()
 
+def writeinstalled():
+    with open(INSTALLED_FILE, "w") as dotfm_csv_file:
+        dotfm_csv = csv.writer(dotfm_csv_file, lineterminator='\n')
+        for dfl in INSTALLED:
+            dotfm_csv.writerow(dfl)
+        dotfm_csv_file.close()
+
+def isdotfile(dotfile_list, query):
+    found = -1
+    for d, dfl in enumerate(dotfile_list):
+        if query == dfl[0] or query == os.path.basename(dfl[0]):
+            found = 0
+        for alias in dfl[1:]:
+            if query == alias:
+                found = d
+                break
+        if found != -1:
+            debug('dotfile {} matches known dotfile alias for {}', alias, dfl[0])
+            break
+
+def clearduplicates(dotfile_list, id_index=0, keep_latest=True):
+    unique = []
+    for d in data:
+        for i, u in enumerate(unique):
+            if d[id_index] == u[id_index]:
+                unique[i] = d # assume later entry = more recent
+    return unique
+
 # main/init
 def init():
     debug('init: loading dotfile locations')
@@ -103,7 +131,7 @@ def init():
         debug(INSTALLED_FILE, 'not found')
         init_createcsv()
     INSTALLED = init_loadcsv(INSTALLED_FILE)
-    INSTALLED = init_cleandups(INSTALLED, 0)
+    INSTALLED = clearduplicates(INSTALLED)
 
 def init_createcsv(default_location):
     location = default_location
@@ -140,125 +168,86 @@ def init_loadcsv(location):
     dotfm_csv.close()
     return data
 
-def init_cleandups(data, id_index):
-    unique = []
-    for d in data:
-        for i, u in enumerate(unique):
-            if d[id_index] == u[id_index]:
-                unique[i] = d # assume later entry = more recent
-    return unique
-
 # main/install
-def dotfm_install(dotfile_source):
-    """ Check "KNOWN" to see if an alias matches "dotfile" basename,
-        if it does create a symbolic link from "dotfile" to the matching
-        "KNOWN" location (index 0).
+def install(dotfile):
+    debug('installing', dotfile)
+    known = isdotfile(KNOWN, dotfile)
+    location = install_getlocation(known)
+    aliases = install_getaliases(known)
+    if not os.path.exists(os.path.dirname(location)):
+        os.system('mkdir -vp {}'.format(location))
+    if os.path.lexists(location):
+        install_oca(dotfile, location)
+    os.system('ln -vs {} {}'.format(dotfile, location))
+    info('appending to installed...')
+    dfl = aliases.insert(0, location)
+    INSTALLED.append(dfl)
+    clearduplicates(INSTALLED)
+    info('success - you might need to re-open the terminal to see changes take effect')
 
-        If file at matching "KNOWN" location exists, prompt user to
-        overwrite it.
+def install_getlocation(known_index):
+    default = ''
+    if known_index != -1:
+        default = KNOWN[known_index][0]
+    if len(default) > 0 and ARGS.skip == True:
+        return default
+    location = ''
+    while location == '':
+        location = input('install location ({})? '.format(
+            ('default:', default) if len(default) > 0 else ''))
+        if len(location) == 0 and len(default) > 0:
+            return default
+        elif location.find('~') != -1:
+            return location.replace('~', HOME)
+        else:
+            location = ''
 
-        @param dotfile = filepath to the dotfile to install
-    """
-    log_info('installing {}...'.format(dotfile_source))
+def install_getaliases(known_index):
+    default = ''
+    if known_index != -1:
+        default = KNOWN[known][1:]
+    if len(default) > 0 and ARGS.skip == True:
+        return default
+    aliases = ''
+    while aliases == '':
+        aliases = input('aliases to call dotfile by (put a space between each alias) ({})? '.format(
+            ('default:', default) if len(default) > 0 else ''))
+        if len(aliases) > 0:
+            return aliases.split(' ')
+        elif len(default) > 0:
+            return default
 
-    # check if dotfile matches an alias in KNOWN
-    found = -1
-    for d, dfl in enumerate(KNOWN):
-        for a, alias in enumerate(dfl[1:]):
-            if os.path.basename(dotfile_source) == alias:
-                found = d
-
-    # prompt for location
-    dest = ''
-    if found != -1:
-        dest = os.path.abspath(KNOWN[found][0])
-    if len(dest) == 0 or ARGS.skip == False:
-        default = dest
-        dest = ''
-        while dest == '':
-            dest = input('install location ({})? '.format('default: {}'.format(default) if len(default) > 0 else ''))
-            if len(dest) == 0 and len(default) > 0:
-                dest = default
-            elif dest.find('~') != -1:
-                dest = dest.replace('~', HOME)
-    # prompt for aliases
-    aliases = []
-    if found != -1:
-        aliases = KNOWN[found][1:]
-    if len(aliases) == 0 or ARGS.skip == False:
-        default = aliases
-        aliases = []
-        while len(aliases) == 0:
-            inp = input('aliases to call dotfile by ({})? '.format('default: {}'.format(default) if len(default) > 0 else ''))
-            if len(inp) > 0:
-                aliases = inp.split(' ')
-            elif len(default) > 0:
-                aliases = default
-    # make sure dotfile dir exists
-    if not os.path.exists(os.path.dirname(dest)):
-        os.system('mkdir -vp {}'.format(dest))
-    # check if file already exists and prompt for action if it does
-    if os.path.lexists(dest):
-        oca = ''
-        while oca == '':
-            oca = input('{} already exists, [o]verwrite/[c]ompare/[a]bort? '.format(dest))
-            if oca[0] == 'o': # overwrite existing file
-                log_info('overwriting {}'.format(dest))
-                os.system('rm {}'.format(dest))
-            elif oca[0] == 'c': # print diff between existing file & dotfile
-                log_info('comparing {} to {}'.format(dotfile_source, dest))
-                os.system('diff -bys {} {}'.format(dotfile_source, dest))  # use vimdiff ?
+def install_oca(dotfile, location):
+    oca = ''
+    while oca == '':
+        oca = input(location 'already exists, [o]verwrite/[c]ompare/[a]bort? ')
+        if len(oca) > 0:
+            if oca[0] == 'o': # overwrite
+                debug('removing', location)
+                os.remove(location)
+            elif oca[0] == 'c': # compare
+                debug('comparing {} to {}'.format(dotfile, location))
+                os.system('diff -bys {} {}'.format(dotfile, location))
                 oca = ''
-            elif oca[0] == 'a': # abort install
-                log_info('aborting install')
+            elif oca[0] == 'a': # abort
+                debug('aborting install')
                 sys.exit()
             else:
                 oca = ''
-    # create symbolic link to dotfile
-    os.system('ln -vs {} {}'.format(dotfile_source, dest))
-    # append to DOTFILE_CSV_FILE and INSTALLED
-    log_info('appending to installed dotfiles...')
-    dfl = aliases
-    dfl.insert(0, dest)
-    with open(INSTALLED_FILE, "a") as dotfm_csv_file:
-        dotfm_csv = csv.writer(dotfm_csv_file, lineterminator='\n')
-        dotfm_csv.writerow(dfl)
-        dotfm_csv_file.close()
-    INSTALLED.append(dfl)
-
-    log_info('success - you might need to re-open the terminal to see changes take effect')
+    return oca
 
 # main/update
-def dotfm_update(dotfile_alias, new_source):
-    """ Update the source location that the dotfile symlink of an already
-        installed dotfile points to. If the dotfile_alias does not exist in
-        INSTALLED_FILE, dotfm_install is called instead.
-
-        @param alias = an alias matching the known aliases of the dotfile to
-        update
-        @param new_source = the new filepath to point the dotfile symlink to
-    """
-
-    log_info('updating {} -> {}...'.format(dotfile_alias, new_source))
-
-    found = -1
-    for i, dfl in enumerate(INSTALLED):
-        if dotfile_alias in dfl:
-            found = i
-            break
-
-    if found != -1:
-        # stat new_source
-        if os.path.exists(new_source):
-            os.system('ln -isv {} {}'.format(new_source, dfl[0]))
-        else:
-            log_info('{} does not exist'.format(new_source))
+def update(alias, location):
+    debug('updating {} -> {}'.format(alias, location))
+    known = isdotfile(INSTALLED, alias)
+    if known != -1:
+        os.system('ln -isv', location, INSTALLED[known][0])
     else:
-        log_info('could not find dotfile matching alias "{}"'.format(
-            dotfile_alias))
+        warn(dotfile, 'is unrecognised, installing')
+        install(location)
 
 # main/remove
-def dotfm_remove(alias):
+def remove(alias):
     """ Remove a dotfile (from it's known location) and remove it from
         INSTALLED_FILE
     
@@ -287,7 +276,7 @@ def dotfm_remove(alias):
         log_info('could not find dotfile matching alias "{}"'.format(alias))
 
 # main/edit
-def dotfm_edit(dotfile_alias):
+def edit(dotfile_alias):
     """ Open dotfile with alias matching "dotfm_alias" in EDITOR
         @param dotfile_alias = an alias of the dotfile to open
     """
@@ -316,7 +305,7 @@ def dotfm_edit(dotfile_alias):
             os.path.basename(dotfile_alias)))
 
 # main/list
-def dotfm_list(dotfile_aliases):
+def list(dotfile_aliases):
     """ List specified dotfile aliases and install location (displays all if
         none are specified).
         @param dotfile_aliases = an array of dotfile aliases to list, if
@@ -354,15 +343,15 @@ if __name__ == '__main__':
     init()
     if ARGS.cmd == 'install':
         for d in ARGS.dotfile:
-            dotfm_install(os.path.abspath(d))
+            install(os.path.abspath(d))
     elif ARGS.cmd == 'update':
-        dotfm_update(ARGS.dotfile[0], ARGS.dotfile[1])
+        update(ARGS.dotfile[0], ARGS.dotfile[1])
     elif ARGS.cmd == 'remove':
         for d in ARGS.dotfile:
-            dotfm_remove(d)
+            remove(d)
     elif ARGS.cmd == 'edit':
         for d in ARGS.dotfile:
-            dotfm_edit(d)
+            edit(d)
     elif ARGS.cmd == 'list':
-        dotfm_list(ARGS.dotfile)
-
+        list(ARGS.dotfile)
+    writeinstalled()
