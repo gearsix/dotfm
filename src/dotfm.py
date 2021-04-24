@@ -44,7 +44,7 @@ KNOWN = [ # dotfiles that dotfm knows by default
     ['{}/.gitmessage'.format(HOME), '.gitmessage', 'gitmessage'],
     ['{}/.gitignore'.format(HOME), '.gitignore', 'gitignore'],
     ['{}/.gemrc'.format(HOME), '.gemrc', 'gemrc'],
-    ['{}/.tmux.conf'.format(HOME), 'tmux.conf', 'tmux.conf'],
+    ['{}/.tmux.conf'.format(HOME), '.tmux.conf', 'tmux.conf'],
     ['{}/.config/user-dirs.dirs'.format(HOME), 'user-dirs.dirs', 'xdg-user-dirs'],
     ['{}/.xinitrc'.format(HOME), '.xinitrc', 'xinitrc'],
     ['{}/.config/rc.conf'.format(HOME), 'rc.conf', 'ranger.conf', 'ranger.cfg'],
@@ -53,8 +53,8 @@ KNOWN = [ # dotfiles that dotfm knows by default
     ['{}/.config/awesome/rc.lua'.format(HOME), 'rc.lua', 'awesomerc'],
     ['{}/.config/i3/config'.format(HOME), 'config', 'i3.conf', 'i3.cfg', 'i3'],
     ['{}/.emacs'.format(HOME), '.emacs', 'emacs'],
-    ['{}/.askrc'.format(HOME), '.askrc', 'askrc'],
-    ['{}/.sfeed'.format(HOME), '.sfeedrc', 'sfeedrc'],
+    ['{}/.sfeed/sfeedrc'.format(HOME), '.sfeedrc', 'sfeedrc'],
+    ['{}/.config/txtnish/config'.format(HOME), 'txtnish', 'txtnish_config'],
 ]
 
 #-----------
@@ -117,27 +117,30 @@ def isdotfile(dotfile_list, query):
             break
     return found
 
-def clearduplicates(dotfile_list, id_index=0, keep_latest=True):
+def clearduplicates(dotfile_list, id_index=0):
     unique = []
-    for d in dotfile_list:
-        for i, u in enumerate(unique):
-            if d[id_index] == u[id_index]:
-                unique[i] = d # assume later entry = more recent
-    return unique
+    for i, d in enumerate(dotfile_list):
+        found = -1
+        for j, dd in enumerate(dotfile_list):
+            if j < i:
+                if dd[id_index] == d[id_index]:
+                    dotfile_list.remove(dd)
 
 # main/init
 def init():
-    debug('loading dotfile locations')
+    debug('init...')
     if not os.path.exists(INSTALLED_FILE):
         debug('{} not found'.format(INSTALLED_FILE))
-        init_createcsv()
-    INSTALLED = init_loadcsv(INSTALLED_FILE)
-    INSTALLED = clearduplicates(INSTALLED)
+        init_createcsv(INSTALLED_FILE)
+    init_loadcsv(INSTALLED_FILE)
+    clearduplicates(INSTALLED)
+    debug('loaded dotfile list: {}'.format(INSTALLED))
 
 def init_createcsv(default_location):
     location = default_location
     if ARGS.skip == False:
-        location = ask('dotfm csv file location (default: {})? '.format(default_location))
+        info('default dotfm csv file location: "{}"'.format(default_location))
+        location = ask('dotfm csv file location (enter for default)? ')
         if len(location) == 0:
             location = default_location
         if os.path.exists(location):
@@ -160,19 +163,21 @@ def init_createcsv(default_location):
         debug('creating dotfm csv file symlink')
         os.system('mkdir -p', os.path.dirname(default_location))
         os.system('ln -isv', os.path.abspath(location), default_location)
+    else:
+        f = open(location, "w")
+        f.close()
+            
 
 def init_loadcsv(location):
-    data = []
     dotfm_csv = open(location, "r")
     dotfm_csv_reader = csv.reader(dotfm_csv)
     for dfl in dotfm_csv_reader:
-        data.append(dfl)
+        INSTALLED.append(dfl)
     dotfm_csv.close()
-    return data
 
 # main/install
 def install(dotfile):
-    debug('installing'.format(dotfile))
+    info('installing {}...'.format(dotfile))
     known = isdotfile(KNOWN, dotfile)
     location = install_getlocation(known)
     aliases = install_getaliases(known)
@@ -181,9 +186,9 @@ def install(dotfile):
     if os.path.lexists(location):
         install_oca(dotfile, location)
     os.system('ln -vs {} {}'.format(dotfile, location))
-    debug('appending to installed...')
-    dfl = aliases.insert(0, location)
-    INSTALLED.append(dfl)
+    debug('appending to {} installed...'.format(location))
+    aliases.insert(0, location)
+    INSTALLED.append(aliases)
     clearduplicates(INSTALLED)
     info('success - you might need to re-open the terminal to see changes take effect')
 
@@ -228,7 +233,6 @@ def install_oca(dotfile, location):
         oca = ask('{} already exists, [o]verwrite/[c]ompare/[a]bort? '.format(location))
         if len(oca) > 0:
             if oca[0] == 'o': # overwrite
-                debug('removing'.format(location))
                 os.remove(location)
             elif oca[0] == 'c': # compare
                 debug('comparing {} to {}'.format(dotfile, location))
@@ -262,7 +266,7 @@ def remove(dotfile):
     dotfile = os.path.abspath(INSTALLED[index][0])
     confirm = ''
     while confirm == '':
-        confirm = ask('remove{}, are you sure [y/n]?'.format(dotfile))
+        confirm = ask('remove "{}", are you sure [y/n]?'.format(dotfile))
     os.remove(dotfile)
     del INSTALLED[index]
     writeinstalled()
@@ -270,13 +274,12 @@ def remove(dotfile):
 # main/edit
 def edit(dotfile):
     debug('editing {}'.format(dotfile))
-
     index = isdotfile(INSTALLED, dotfile)
     if index == -1:
         warn('could not find installed dotfile matching "{}"'.format(dotfile))
         return
     target = INSTALLED[index][0]
-    os.system(EDITOR, target)
+    os.system('{} {}'.format(EDITOR, target))
     info('You might need to re-open the terminal, or re-execute the relevant dotfile')
 
 # main/list
@@ -288,12 +291,12 @@ def list(dotfiles):
         data = ''
         for d in dotfiles:
             for i in INSTALLED:
-                if d == i:
-                    data += i[0]
-                    for alias in d[1:]:
-                        data += (',', alias)
+                if d in i:
+                    data += '{},'.format(i[0])
+                    for alias in i[1:]:
+                        data += ',{}'.format(alias)
                     data += '\n'
-        os.system('printf "LOCATION,ALIASES...\n$({})" | column -t -s ,'.format(data))
+        os.system('printf "LOCATION,ALIASES...\n{}" | column -t -s ,'.format(data))
 
 #------
 # MAIN
