@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 #=========================
 # dotfm - dotfile manager
@@ -53,7 +53,7 @@ KNOWN = [ # dotfiles that dotfm knows by default
     ['{}/.config/awesome/rc.lua'.format(HOME), 'rc.lua', 'awesomerc'],
     ['{}/.config/i3/config'.format(HOME), 'config', 'i3.conf', 'i3.cfg', 'i3'],
     ['{}/.emacs'.format(HOME), '.emacs', 'emacs'],
-    ['{}/.inputrc'.format(HOME), '.inputrc', 'inputrc'],
+    ['{}/.askrc'.format(HOME), '.askrc', 'askrc'],
     ['{}/.sfeed'.format(HOME), '.sfeedrc', 'sfeedrc'],
 ]
 
@@ -61,16 +61,22 @@ KNOWN = [ # dotfiles that dotfm knows by default
 # FUNCTIONS
 #-----------
 # utilities
+def ask(message):
+    return input('dotfm | {} '.format(message))
+
+def log(message):
+    print('dotfm | {}'.format(message))
+    
 def debug(message):
     if ARGS.debug == True:
-        print(message)
-
+        log(message)
+        
 def info(message):
     if ARGS.quiet == False:
-        print(message)
+        log(message)
 
 def warn(message):
-    input('{}, press key to continue'.format(message))
+    ask('{}, press key to continue'.format(message))
 
 # main
 def parseargs():
@@ -94,20 +100,20 @@ def parseargs():
 
 def writeinstalled():
     with open(INSTALLED_FILE, "w") as dotfm_csv_file:
-        dotfm_csv = csv.writer(dotfm_csv_file, lineterminator='\n')
+        dotfm_csv_writer = csv.writer(dotfm_csv_file, lineterminator='\n')
         for dfl in INSTALLED:
-            dotfm_csv.writerow(dfl)
+            dotfm_csv_writer.writerow(dfl)
         dotfm_csv_file.close()
 
 def isdotfile(dotfile_list, query):
+    query = os.path.basename(query)
+    debug('checking for {}'.format(query))
     found = -1
     for d, dfl in enumerate(dotfile_list):
-        if query == dfl[0] or query == os.path.basename(dfl[0]):
-            found = 0
-        elif query in dfl[1:]:
-            found = dfl.find(query)
+        if query == os.path.basename(dfl[0]) or query in dfl:
+            found = d
         if found != -1:
-            debug('dotfile {} matches known dotfile alias for {}'.format(alias, dfl[0]))
+            debug('dotfile {} matches known dotfile alias for {}'.format(query, dfl[0]))
             break
     return found
 
@@ -121,7 +127,7 @@ def clearduplicates(dotfile_list, id_index=0, keep_latest=True):
 
 # main/init
 def init():
-    debug('init: loading dotfile locations')
+    debug('loading dotfile locations')
     if not os.path.exists(INSTALLED_FILE):
         debug('{} not found'.format(INSTALLED_FILE))
         init_createcsv()
@@ -131,12 +137,12 @@ def init():
 def init_createcsv(default_location):
     location = default_location
     if ARGS.skip == False:
-        location = input('dotfm csv file location (default: {})? '.format(default_location))
+        location = ask('dotfm csv file location (default: {})? '.format(default_location))
         if len(location) == 0:
             location = default_location
         if os.path.exists(location):
             debug('{} already exists'.format(location))
-            on = input('[o]verwrite or [u]se {}? '.format(location))
+            on = ask('[o]verwrite or [u]se {}? '.format(location))
             if len(on) > 0:
                 if on[0] == 'o': # create file at location & write KNOWN[0] to it
                     warn('overwriting {}, all existing data in this file will be lost'.format(location))
@@ -175,7 +181,7 @@ def install(dotfile):
     if os.path.lexists(location):
         install_oca(dotfile, location)
     os.system('ln -vs {} {}'.format(dotfile, location))
-    info('appending to installed...')
+    debug('appending to installed...')
     dfl = aliases.insert(0, location)
     INSTALLED.append(dfl)
     clearduplicates(INSTALLED)
@@ -183,14 +189,16 @@ def install(dotfile):
 
 def install_getlocation(known_index):
     default = ''
+    install = 'install location?'
     if known_index != -1:
         default = KNOWN[known_index][0]
+        info('default install location is "{}"'.format(default))
+        install = 'install location (enter for default):'.format(default)
     if len(default) > 0 and ARGS.skip == True:
         return default
     location = ''
     while location == '':
-        location = input('install location ({})? '.format(
-            ('default:', default) if len(default) > 0 else ''))
+        location = ask(install)
         if len(location) == 0 and len(default) > 0:
             return default
         elif location.find('~') != -1:
@@ -201,13 +209,14 @@ def install_getlocation(known_index):
 def install_getaliases(known_index):
     default = ''
     if known_index != -1:
-        default = KNOWN[known][1:]
+        default = KNOWN[known_index][1:]
+        info('default aliases are "{}"'.format(' '.join(default)))
     if len(default) > 0 and ARGS.skip == True:
         return default
     aliases = ''
     while aliases == '':
-        aliases = input('aliases to call dotfile by (put a space between each alias) ({})? '.format(
-            ('default:', default) if len(default) > 0 else ''))
+        aliases = ask('dotfile aliases (enter for default): '.format(
+            ('defaults', default) if len(default) > 0 else ''))
         if len(aliases) > 0:
             return aliases.split(' ')
         elif len(default) > 0:
@@ -216,7 +225,7 @@ def install_getaliases(known_index):
 def install_oca(dotfile, location):
     oca = ''
     while oca == '':
-        oca = input(location, 'already exists, [o]verwrite/[c]ompare/[a]bort? ')
+        oca = ask('{} already exists, [o]verwrite/[c]ompare/[a]bort? '.format(location))
         if len(oca) > 0:
             if oca[0] == 'o': # overwrite
                 debug('removing'.format(location))
@@ -253,7 +262,7 @@ def remove(dotfile):
     dotfile = os.path.abspath(INSTALLED[index][0])
     confirm = ''
     while confirm == '':
-        confirm = input('remove{}, are you sure [y/n]?'.format(dotfile))
+        confirm = ask('remove{}, are you sure [y/n]?'.format(dotfile))
     os.remove(dotfile)
     del INSTALLED[index]
     writeinstalled()
@@ -272,20 +281,19 @@ def edit(dotfile):
 
 # main/list
 def list(dotfiles):
-    debug('listing dotfiles')
-    data = ''
+    debug('listing dotfiles: {}'.format(dotfiles))
     if len(dotfiles) == 0:
-		os.system('printf "LOCATION,ALIASES...\n$(cat {})" | column -t -s'.format(data))
+        os.system('printf "LOCATION,ALIASES...\n$(cat {})" | column -t -s ,'.format(INSTALLED_FILE))
     else:
-        dfl = ''
+        data = ''
         for d in dotfiles:
-            if i in INSTALLED:
-                if d in i:
+            for i in INSTALLED:
+                if d == i:
                     data += i[0]
                     for alias in d[1:]:
                         data += (',', alias)
                     data += '\n'
-		os.system('printf "LOCATION,ALIASES...\n$({})" | column -t -s ,'.format(data))
+        os.system('printf "LOCATION,ALIASES...\n$({})" | column -t -s ,'.format(data))
 
 #------
 # MAIN
