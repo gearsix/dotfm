@@ -19,7 +19,7 @@ ARGUMENTS
 COMMANDS
   Multiple DOTFILE args can be passed to each command.
 
-  install <DOTFILE>...	
+  install <DOTFILE> ...	
     create a symlink from DOTFILE to it's install location. DOTFILE
     should be the filepath of the dotfile to install.
 
@@ -30,7 +30,7 @@ COMMANDS
     an install location and aliases to reference the dotfile by when
     using dotfm.
 
-  update <ALIAS> <LOCATION>	
+  update <DOTFILE> <LOCATION>	
     update the location that a previously installed dotfile (with an
 	alias matching ALIAS) symlink points to (sets it to point to
 	LOCATION).
@@ -42,12 +42,12 @@ COMMANDS
     Will only remove the file if the file has been installed by dotfm
     (and can be found in DOTFM CSV FILE).
 
-  edit <DOTFILE>...	
+  edit <DOTFILE> ...	
     Open DOTFILE in $EDITOR or nano if $EDITOR is not present.
 
     DOTFILE should be an alias of the dotfile to edit.
 
-  list [<DOTFILE>...]	
+  list [<DOTFILE> ...]	
     Print a table of the install locations and aliases for all
     dotfiles. If one or more DOTFILE arguments are present, then only
     dotfiles with matching aliases will be listed.
@@ -73,13 +73,10 @@ ENVIRONMENT
   		nano will be used.
 
 HINTS
-  I would recommend modifying the "KNOWN DOTFILES" array in src/ dotfm.py
-  to suite your own needs.
-
-  If you can think of more standard-dotfiles that you think
-  should be present in "KNOWN DOTFILES" feel free to get in touch and
-  contribute to the list.
+  I would recommend modifying the "KNOWN" array in src/ dotfm.py
+  to suite your own needs if i've missed any dotfiles you frequently use.
 
 AUTHORS & CONTRIBUTORS
   - gearsix <gearsix@tuta.io> = original author
-  - marta dias - https://www.instagram.com/marta.dias.z/ = contributed the wonderful logo
+  - marta dias - https://www.instagram.com/marta.dias.z/ = the logo
+
