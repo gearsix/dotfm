@@ -1,5 +1,18 @@
 # CHANGELOG
 
+## v2.2.0
+
+- total refactored on most of the code to tidyup some mess that'd been in for a while
+	- logging is more consistent
+	- no more duplicates in the installed.csv file
+	- overall behaviour is more consistent and tidy
+- added sfeed to known dotfiles
+- added txtnish to known dotfiles
+- added '-s', '--skip' option, which will skip any prompts and use pre-defined defaults if available
+- user is now prompted for a dotfile location even if dotfm knows it (found myself wanting to use install init.vim as ~/.vimrc), the pre-defined location is used as a default
+
+---
+
 ## v2.1.2
 
 - added `-p` to mkdir calls in Makefile to avoid failure when path exists
