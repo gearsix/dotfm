@@ -118,13 +118,11 @@ def isdotfile(dotfile_list, query):
     return found
 
 def clearduplicates(dotfile_list, id_index=0):
-    unique = []
     for i, d in enumerate(dotfile_list):
-        found = -1
         for j, dd in enumerate(dotfile_list):
-            if j < i:
-                if dd[id_index] == d[id_index]:
-                    dotfile_list.remove(dd)
+            if j > i and dd[id_index] == d[id_index]:
+                dotfile_list.remove(d)
+                break
 
 # main/init
 def init():
@@ -250,7 +248,7 @@ def update(alias, location):
     debug('updating {} -> {}'.format(alias, location))
     known = isdotfile(INSTALLED, alias)
     if known != -1:
-        os.system('ln -isv', location, INSTALLED[known][0])
+        os.system('ln -isv {} {}'.format(location, INSTALLED[known][0]))
     else:
         warn('{} is unrecognised, installing'.format(dotfile))
         install(location)
@@ -313,6 +311,10 @@ if __name__ == '__main__':
         for d in ARGS.dotfile:
             install(os.path.abspath(d))
     elif ARGS.cmd == 'update':
+        if len(ARGS.dotfile) < 2:
+            debug('invalid number of arguments')
+            info('usage: "dotfm update DOTFILE LOCATION"')
+            sys.exit()
         update(ARGS.dotfile[0], ARGS.dotfile[1])
     elif ARGS.cmd == 'remove':
         for d in ARGS.dotfile:
