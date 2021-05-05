@@ -18,7 +18,7 @@ link:
 	ln -si ${CURRDIR}/src/${NAME}.py ${DESTBINDIR}/${NAME}
 	@echo 'WARNING! moving ${CURRDIR}/src/dotfm.py will break this link'
 	mkdir -p ${DESKMANDIR}/man1
-	install ${CURRDIR}/src/${NAME}.1 ${DESTMANDIR}/man1/${NAME}.1
+	ln -si ${CURRDIR}/src/${NAME}.1 ${DESTMANDIR}/man1/${NAME}.1
 	ln -si ${DESTMANDIR}/man1/${NAME}.1 /usr/share/man/man1/${NAME}.1
 
 uninstall:
