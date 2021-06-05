@@ -180,7 +180,7 @@ def install(dotfile):
     location = install_getlocation(known)
     aliases = install_getaliases(known)
     if not os.path.exists(os.path.dirname(location)):
-        os.system('mkdir -vp {}'.format(location))
+        os.system('mkdir -vp {}'.format(os.path.dirname(location)))
     if os.path.lexists(location):
         install_oca(dotfile, location)
     os.system('ln -vs {} {}'.format(dotfile, location))
