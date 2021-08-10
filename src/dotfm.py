@@ -156,6 +156,7 @@ def init_createcsv(default_location):
                 elif on[0] == 'u':
                     debug('using pre-existing csv {}'.format(location))
                     sys.exit()
+
     os.makedirs(os.path.dirname(location))
     # create default_location symlink
     if os.path.abspath(location) != os.path.abspath(default_location):
@@ -165,7 +166,6 @@ def init_createcsv(default_location):
     else:
         f = open(location, "w")
         f.close()
-            
 
 def init_loadcsv(location):
     dotfm_csv = open(location, "r")
