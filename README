@@ -19,7 +19,7 @@ ARGUMENTS
 COMMANDS
   Multiple DOTFILE args can be passed to each command.
 
-  install <DOTFILE> ...	
+  install <DOTFILE> ...		
     create a symlink from DOTFILE to it's install location. DOTFILE
     should be the filepath of the dotfile to install.
 
