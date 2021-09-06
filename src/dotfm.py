@@ -119,7 +119,11 @@ def isdotfile(dotfile_list, query):
 
 def clearduplicates(dotfile_list, id_index=0):
     for i, d in enumerate(dotfile_list):
+        if len(d) == 0:
+            continue
         for j, dd in enumerate(dotfile_list):
+            if len(dd) == 0:
+                continue
             if j > i and dd[id_index] == d[id_index]:
                 dotfile_list.remove(d)
                 break
