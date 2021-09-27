@@ -166,9 +166,9 @@ def init_createcsv(default_location):
         os.system('mkdir -p', os.path.dirname(default_location))
         os.system('ln -isv', os.path.abspath(location), default_location)
     else:
+        os.makedirs(os.path.dirname(location), exist_ok=True)
         f = open(location, "w")
         f.close()
-            
 
 def init_loadcsv(location):
     dotfm_csv = open(location, "r")
