@@ -147,7 +147,7 @@ def init_createcsv(default_location):
             if len(on) > 0:
                 if on[0] == 'o': # create file at location & write KNOWN[0] to it
                     warn('overwriting {}, all existing data in this file will be lost'.format(location))
-                    os.system('mkdir -p', os.path.dirname(location))
+                    os.makedirs(os.path.dirname(location), exist_ok=True)
                     dotfm_csv = open(location, "w")
                     for i, dfl in enumerate(KNOWN[0]):
                         dotfm_csv.write(dfl if i == 0 else ',{}'.format(dfl))
@@ -156,15 +156,16 @@ def init_createcsv(default_location):
                 elif on[0] == 'u':
                     debug('using pre-existing csv {}'.format(location))
                     sys.exit()
+
     # create default_location symlink
     if os.path.abspath(location) != os.path.abspath(default_location):
         debug('creating dotfm csv file symlink')
-        os.system('mkdir -p', os.path.dirname(default_location))
+        os.makedirs(os.path.dirname(default_location), exist_ok=True)
         os.system('ln -isv', os.path.abspath(location), default_location)
     else:
+        os.makedirs(os.path.dirname(location), exist_ok=True)
         f = open(location, "w")
         f.close()
-            
 
 def init_loadcsv(location):
     dotfm_csv = open(location, "r")
@@ -180,7 +181,7 @@ def install(dotfile):
     location = install_getlocation(known)
     aliases = install_getaliases(known)
     if not os.path.exists(os.path.dirname(location)):
-        os.system('mkdir -vp {}'.format(location))
+        os.makedirs(os.path.dirname(locations), exist_ok=True)
     if os.path.lexists(location):
         install_oca(dotfile, location)
     os.system('ln -vs {} {}'.format(dotfile, location))
