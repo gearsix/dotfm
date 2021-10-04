@@ -5,7 +5,7 @@
 #=========================
 # authors: gearsix
 # created: 2020-01-15
-# updated: 2021-04-22
+# updated: 2021-09-06
 
 #---------
 # IMPORTS
@@ -25,7 +25,7 @@ HOME = os.getenv('HOME')
 USER = os.getenv('USER')
 ARGS = []
 EDITOR = os.getenv('EDITOR') or 'nano'
-VERSION = 'v2.2.0'
+VERSION = 'v2.2.1'
 INSTALLED = []
 INSTALLED_FILE = '/home/{}/.local/share/dotfm/installed.csv'.format(USER)
 KNOWN = [ # dotfiles that dotfm knows by default
@@ -119,7 +119,11 @@ def isdotfile(dotfile_list, query):
 
 def clearduplicates(dotfile_list, id_index=0):
     for i, d in enumerate(dotfile_list):
+        if len(d) == 0:
+            continue
         for j, dd in enumerate(dotfile_list):
+            if len(dd) == 0:
+                continue
             if j > i and dd[id_index] == d[id_index]:
                 dotfile_list.remove(d)
                 break
@@ -184,7 +188,8 @@ def install(dotfile):
         os.makedirs(os.path.dirname(locations), exist_ok=True)
     if os.path.lexists(location):
         install_oca(dotfile, location)
-    os.system('ln -vs {} {}'.format(dotfile, location))
+    if dotfile != location:
+        os.system('ln -vs {} {}'.format(dotfile, location))
     debug('appending to {} installed...'.format(location))
     aliases.insert(0, location)
     INSTALLED.append(aliases)
@@ -266,7 +271,10 @@ def remove(dotfile):
     confirm = ''
     while confirm == '':
         confirm = ask('remove "{}", are you sure [y/n]?'.format(dotfile))
-    os.remove(dotfile)
+    try:
+        os.remove(dotfile)
+    except OSError as err:
+        warn('cannot remove "{}"...\n{}'.format(dotfile, err))
     del INSTALLED[index]
     writeinstalled()
 
@@ -275,11 +283,29 @@ def edit(dotfile):
     debug('editing {}'.format(dotfile))
     index = isdotfile(INSTALLED, dotfile)
     if index == -1:
-        warn('could not find installed dotfile matching "{}"'.format(dotfile))
-        return
+        if edit_promptinstall(dotfile) == 'y':
+            index = isdotfile(INSTALLED, dotfile)
+        else:
+            return
     target = INSTALLED[index][0]
     os.system('{} {}'.format(EDITOR, target))
     info('You might need to re-open the terminal, or re-execute the relevant dotfile')
+
+def edit_promptinstall(dotfile):
+    yn = '-'
+    while yn[0] != 'y' and yn[0] != 'n':
+        yn = ask('could not find installed dotfile matching "{}", install [y/n]? '.format(dotfile))
+        if len(yn) == 0:
+            yn = '-'
+        if yn[0] == 'y':
+            location = ask('input source filepath: ')
+            if len(location) == 0:
+                location = '/home/{}/.{}'.format(USER, dotfile)
+                log('setting location to "{}"'.format(location))
+            f = open(location, 'w')
+            f.close()
+            install(location)
+    return yn[0]
 
 # main/list
 def list(dotfiles):
