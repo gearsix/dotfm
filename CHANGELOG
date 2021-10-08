@@ -1,6 +1,16 @@
 
 <details><summary><h3 style="display: inline;">CHANGELOG</h3></summary>
 
+**v2.3.0**
+
+- Added aliases for all commands:
+  - install, in
+  - edit, ed
+  - list, ls
+  - remove, rm
+  - update, up
+- Updated README
+
 **v2.2.2**
 
 - Bugfix when a blank line is found in the installed.csv file
