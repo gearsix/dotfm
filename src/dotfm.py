@@ -186,9 +186,9 @@ def install(dotfile):
     aliases = install_getaliases(known)
     if not os.path.exists(os.path.dirname(location)):
         os.makedirs(os.path.dirname(locations), exist_ok=True)
-    if os.path.lexists(location):
-        install_oca(dotfile, location)
     if dotfile != location:
+        if os.path.lexists(location):
+            install_oca(dotfile, location)
         os.system('ln -vs {} {}'.format(dotfile, location))
     debug('appending to {} installed...'.format(location))
     aliases.insert(0, location)
@@ -196,18 +196,17 @@ def install(dotfile):
     clearduplicates(INSTALLED)
     info('success - you might need to re-open the terminal to see changes take effect')
 
-def install_getlocation(known_index):
+def install_getlocation(known_index, msg='install location?'):
     default = ''
-    install = 'install location?'
     if known_index != -1:
         default = KNOWN[known_index][0]
         info('default install location is "{}"'.format(default))
-        install = 'install location (enter for default):'.format(default)
+        msg = 'install location (enter for default):'.format(default)
     if len(default) > 0 and ARGS.skip == True:
         return default
     location = ''
     while location == '':
-        location = ask(install)
+        location = ask(msg)
         if len(location) == 0 and len(default) > 0:
             return default
         elif location.find('~') != -1:
@@ -298,13 +297,7 @@ def edit_promptinstall(dotfile):
         if len(yn) == 0:
             yn = '-'
         if yn[0] == 'y':
-            location = ask('input source filepath: ')
-            if len(location) == 0:
-                location = '/home/{}/.{}'.format(USER, dotfile)
-                log('setting location to "{}"'.format(location))
-            f = open(location, 'w')
-            f.close()
-            install(location)
+            install(install_getlocation(-1, msg='input source path:'))
     return yn[0]
 
 # main/list
