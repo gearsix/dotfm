@@ -21,13 +21,12 @@ import argparse
 # GLOBALS
 #---------
 NAME = os.path.basename(__file__)
-HOME = os.getenv('HOME')
 USER = os.getenv('USER')
 ARGS = []
 EDITOR = os.getenv('EDITOR') or 'nano'
 VERSION = 'v2.2.1'
 INSTALLED = []
-INSTALLED_FILE = '/home/{}/.local/share/dotfm/installed.csv'.format(USER)
+INSTALLED_FILE = '{}/.local/share/dotfm/installed.csv'.format(HOME)
 KNOWN = [ # dotfiles that dotfm knows by default
     # install location, aliases...
     [INSTALLED_FILE, 'dotfm'],
