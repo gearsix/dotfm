@@ -80,7 +80,7 @@ def warn(message):
 
 # main
 def parseargs():
-    valid_commands = ['install', 'update', 'remove', 'edit', 'list']
+    valid_commands = ['install', 'in' 'update', 'up', 'remove', 'rm', 'edit', 'ed', 'list', 'ls']
     parser = argparse.ArgumentParser(description='a simple tool to help you manage your dotfile symlinks.')
     # OPTIONS
     parser.add_argument('-s', '--skip', action='store_true',
@@ -327,21 +327,21 @@ if __name__ == '__main__':
         debug('muting info logs')
 
     init()
-    if ARGS.cmd == 'install':
+    if ARGS.cmd == 'install' or ARGS.cmd == 'in':
         for d in ARGS.dotfile:
             install(os.path.abspath(d))
-    elif ARGS.cmd == 'update':
+    elif ARGS.cmd == 'update' or ARGS.cmd == 'up':
         if len(ARGS.dotfile) < 2:
             debug('invalid number of arguments')
             info('usage: "dotfm update DOTFILE LOCATION"')
             sys.exit()
         update(ARGS.dotfile[0], ARGS.dotfile[1])
-    elif ARGS.cmd == 'remove':
+    elif ARGS.cmd == 'remove' or ARGS.cmd == 'rm':
         for d in ARGS.dotfile:
             remove(d)
-    elif ARGS.cmd == 'edit':
+    elif ARGS.cmd == 'edit' or ARGS.cmd == 'ed':
         for d in ARGS.dotfile:
             edit(d)
-    elif ARGS.cmd == 'list':
+    elif ARGS.cmd == 'list' or ARGS.cmd == 'ls':
         list(ARGS.dotfile)
     writeinstalled()
