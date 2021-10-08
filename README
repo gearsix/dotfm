@@ -12,6 +12,7 @@ DESCRIPTION
 
 ARGUMENTS
   -h --help	Displays help printout
+  -s --skip	Skip prompts where necessary and just use defaults
   -d --debug	Display debug logs
   -v --version	Display dotfm version
   -q --quiet	Tell dotfm to shutup (hide info logs)
@@ -19,48 +20,51 @@ ARGUMENTS
 COMMANDS
   Multiple DOTFILE args can be passed to each command.
 
-  install <DOTFILE> ...		
-    create a symlink from DOTFILE to it's install location. DOTFILE
-    should be the filepath of the dotfile to install.
+  Some terminology to avoid confusion:
+    - DOTFILE refers to the filepath of the dotfile to be installed
+    - DESTINATION refers to the location you would usually find a
+    dotfile at. For example, the location for bashrc is ~/.bashrc
+    - ALIAS refers to any name used to call a dotfile installed by
+    dotfm. dotfm recognises the source filepath (DOTFILE) as an alias
 
-    If DOTFILE is recognised by dotfm, then a symlink will be created
-    at the known install location.
+  install, in <DOTFILE> ...		
+    Create a symlink to DOTFILE from it's DESTINATION and register it.
+	DOTFILE should be the filepath of the dotfile to install. If this
+	path matches its DESTINATION, then a symlink won't be created but
+	the file will still be registered by dotfm.
 
-    If DOTFILE is not recognised by dotfm, then you'll be prompted for
-    an install location and aliases to reference the dotfile by when
-    using dotfm.
+    If DOTFILE is recognised by dotfm, then you will be prompted for
+	an install location and aliases to call the dotfile by. If the
+	--skip option was passed then the defaults will be used.
 
-  update <DOTFILE> <LOCATION>	
-    update the location that a previously installed dotfile (with an
-	alias matching ALIAS) symlink points to (sets it to point to
-	LOCATION).
+  update, up <ALIAS> <DOTFILE>	
+    update the source DOTFILE path (of the dotfm-registered dotfile
+	matching ALIAS) that DESTINATION points to.
 
-  remove <DOTFILE>...	
-    Remove the file at the install location of the dotfile with an alias
-    matching DOTFILE. This is a destructive function, use it carefully.
+  remove, rm <ALIAS> ...	
+    If ALIAS is recognised, then the DESTINATION of the dotfile will be
+	removed. This is a destructive function, use it carefully.
 
     Will only remove the file if the file has been installed by dotfm
     (and can be found in DOTFM CSV FILE).
 
-  edit <DOTFILE> ...	
+  edit, ed <ALIAS> ...	
     Open DOTFILE in $EDITOR or nano if $EDITOR is not present.
 
     DOTFILE should be an alias of the dotfile to edit.
 
-  list [<DOTFILE> ...]	
+  list, ls <ALIAS> ...	
     Print a table of the install locations and aliases for all
-    dotfiles. If one or more DOTFILE arguments are present, then only
-    dotfiles with matching aliases will be listed.
+	registered dotfiles. If one or more DOTFILE arguments are present,
+	then only dotfiles with matching aliases will be listed.
 
 INSTALL
   Go to the source folder of dotfm and run "sudo make install" or "sudo
   make link".
-
-  "sudo make install" - copy dotfm to the install location (recommended
-  for most users).
-
-  "sudo make link" - create a symlink of dotfm from its current location
-  to the install location (useful if you want to modify it frequently).
+    - "sudo make install" - copy dotfm to the install location (recommended
+    for most users).
+    - "sudo make link" - create a symlink of dotfm from its current location
+    to the install location (useful for development).
 
   By default the install location of dotfm is /usr/local/bin/dotfm. To
   modify this, just edit the value of DESTBINDIR in the Makefile.
@@ -71,6 +75,7 @@ UNINSTALL
 ENVIRONMENT
   EDITOR	The text editor to edit dotfiles with. If not present,
   		nano will be used.
+  HOME	The home directory of the current user
 
 HINTS
   I would recommend modifying the "KNOWN" array in src/ dotfm.py
