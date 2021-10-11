@@ -21,7 +21,7 @@ import argparse
 # GLOBALS
 #---------
 NAME = os.path.basename(__file__)
-USER = os.getenv('USER')
+HOME = os.getenv('HOME')
 ARGS = []
 EDITOR = os.getenv('EDITOR') or 'nano'
 VERSION = 'v2.2.1'
