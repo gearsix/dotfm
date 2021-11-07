@@ -41,6 +41,10 @@ COMMANDS
     update the source DOTFILE path (of the dotfm-registered dotfile
 	matching ALIAS) that DESTINATION points to.
 
+  link, ln <FILE> ...
+    hardlink FILE to another destination, ideally a repository with a
+	collection of your dotfiles.
+
   remove, rm <ALIAS> ...	
     If ALIAS is recognised, then the DESTINATION of the dotfile will be
 	removed. This is a destructive function, use it carefully.
@@ -76,6 +80,7 @@ ENVIRONMENT
   EDITOR	The text editor to edit dotfiles with. If not present,
   		nano will be used.
   HOME	The home directory of the current user
+  DFMDIR	The directory in which your collection of dotfiles live.
 
 HINTS
   I would recommend modifying the "KNOWN" array in src/ dotfm.py
