@@ -79,7 +79,7 @@ def warn(message):
 
 # main
 def parseargs():
-    valid_commands = ['install', 'in' 'update', 'up', 'remove', 'rm', 'edit', 'ed', 'list', 'ls']
+    valid_commands = ['install', 'in', 'update', 'up', 'remove', 'rm', 'edit', 'ed', 'list', 'ls']
     parser = argparse.ArgumentParser(description='a simple tool to help you manage your dotfile symlinks.')
     # OPTIONS
     parser.add_argument('-s', '--skip', action='store_true',
