@@ -79,7 +79,7 @@ def warn(message):
 
 # main
 def parseargs():
-    valid_commands = ['install', 'in', 'update', 'up', 'remove', 'rm', 'edit', 'ed', 'list', 'ls']
+    valid_commands = ['install', 'in', 'update', 'up', 'link', 'ln', 'remove', 'rm', 'edit', 'ed', 'list', 'ls']
     parser = argparse.ArgumentParser(description='a simple tool to help you manage your dotfile symlinks.')
     # OPTIONS
     parser.add_argument('-s', '--skip', action='store_true',
@@ -257,6 +257,36 @@ def update(alias, location):
         warn('{} is unrecognised, installing'.format(dotfile))
         install(location)
 
+# main/link
+def link(dotfile):
+    dotfm_dir='~/.dotfiles/'
+
+    if 'DFMDIR' in os.environ:
+        dotfm_dir = os.environ('DFMDIR')
+    else:
+        log('default dotfm dir: "{}"'.format(dotfm_dir))
+        d = ask('link to (enter for default)? '.format(dotfm_dir))
+        if os.path.exists(d):
+            dotfm_dir=d
+
+    dotfm_dir = dotfm_dir.replace('~', HOME)
+    os.makedirs(dotfm_dir, exist_ok=True)
+
+    target=os.path.join(dotfm_dir, os.path.basename(dotfile))
+
+    debug('linking {} -> {}'.format(dotfile, target))
+    if not os.path.exists(dotfile):
+        answer = ask('"{}" does not exist, create [y/n]?'.format(dotfile))
+        debug(answer)
+        if answer[0] == 'y':
+            f = open(dotfile, 'w')
+            f.close()
+        else:
+            return
+    if os.path.exists(target):
+        answer = install_oca(dotfile, target)
+    os.link(dotfile, target)
+
 # main/remove
 def remove(dotfile):
     debug('removing {}'.format(dotfile))
@@ -335,6 +365,9 @@ if __name__ == '__main__':
             info('usage: "dotfm update DOTFILE LOCATION"')
             sys.exit()
         update(ARGS.dotfile[0], ARGS.dotfile[1])
+    elif ARGS.cmd == 'link' or ARGS.cmd == 'ln':
+        for d in ARGS.dotfile:
+            link(d)
     elif ARGS.cmd == 'remove' or ARGS.cmd == 'rm':
         for d in ARGS.dotfile:
             remove(d)
