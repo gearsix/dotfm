@@ -184,7 +184,7 @@ def install(dotfile):
     location = install_getlocation(known)
     aliases = install_getaliases(known)
     if not os.path.exists(os.path.dirname(location)):
-        os.makedirs(os.path.dirname(locations), exist_ok=True)
+        os.makedirs(os.path.dirname(location), exist_ok=True)
     if dotfile != location:
         if os.path.lexists(location):
             install_oca(dotfile, location)
