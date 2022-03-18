@@ -1,6 +1,21 @@
 
 <details><summary><h3 style="display: inline;">CHANGELOG</h3></summary>
 
+**v2.4.1**
+
+- bugfix
+
+**v2.4.0**
+
+- added shorthand commands names
+- added 'link, ln' command
+- updated man
+- fix to valid command names
+
+**v2.3.1**
+
+- Bugfix
+
 **v2.3.0**
 
 - Added aliases for all commands:
