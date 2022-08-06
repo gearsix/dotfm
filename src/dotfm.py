@@ -317,7 +317,6 @@ def edit(dotfile):
             return
     target = INSTALLED[index][0]
     os.system('{} {}'.format(EDITOR, target))
-    info('You might need to re-open the terminal, or re-execute the relevant dotfile')
 
 def edit_promptinstall(dotfile):
     yn = '-'
@@ -359,6 +358,7 @@ if __name__ == '__main__':
     if ARGS.cmd == 'install' or ARGS.cmd == 'in':
         for d in ARGS.dotfile:
             install(os.path.abspath(d))
+            print("")
     elif ARGS.cmd == 'update' or ARGS.cmd == 'up':
         if len(ARGS.dotfile) < 2:
             debug('invalid number of arguments')
@@ -377,3 +377,5 @@ if __name__ == '__main__':
     elif ARGS.cmd == 'list' or ARGS.cmd == 'ls':
         list(ARGS.dotfile)
     writeinstalled()
+    info('You might need to re-open the terminal, or re-execute the relevant dotfile')
+
