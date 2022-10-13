@@ -317,7 +317,6 @@ def edit(dotfile):
             return
     target = INSTALLED[index][0]
     os.system('{} {}'.format(EDITOR, target))
-    info('You might need to re-open the terminal, or re-execute the relevant dotfile')
 
 def edit_promptinstall(dotfile):
     yn = '-'
@@ -377,3 +376,4 @@ if __name__ == '__main__':
     elif ARGS.cmd == 'list' or ARGS.cmd == 'ls':
         list(ARGS.dotfile)
     writeinstalled()
+
