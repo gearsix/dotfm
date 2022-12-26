@@ -360,6 +360,7 @@ if __name__ == '__main__':
     ARGS = parseargs()
     if ARGS.debug == True:
         debug('printing debug logs')
+        debug('args = {}'.format(ARGS))
     if ARGS.quiet == True:
         debug('muting info logs')
 
