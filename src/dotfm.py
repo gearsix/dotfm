@@ -26,7 +26,15 @@ ARGS = []
 EDITOR = os.getenv('EDITOR') or 'nano'
 VERSION = 'v2.2.1'
 INSTALLED = []
-INSTALLED_FILE = '{}/.local/share/dotfm/installed.csv'.format(HOME)
+INSTALLED_FILE = ''
+if sys.platform == 'linux' or sys.platform == 'linux2':
+	INSTALLED_FILE = '{}/.local/share/dotfm/installed.csv'.format(HOME)
+elif sys.platform == 'darwin':
+	INSTALLED_FILE = '{}/Library/Application Support/dotfm/installed.csv'.format(HOME)
+elif sys.platform == 'win32' or sys.platform == 'cygwin' or sys.platform == 'msys':
+	INSTALLED_FILE = '{}/Local/dotfm/installed.csv'.format(os.getenv('APPDATA'))
+else:
+	print('warning: unsupported system, things might break')
 KNOWN = [ # dotfiles that dotfm knows by default
     # install location, aliases...
     [INSTALLED_FILE, 'dotfm'],
@@ -211,6 +219,7 @@ def install_getlocation(known_index, msg='install location?'):
         elif location.find('~') != -1:
             return location.replace('~', HOME)
         else:
+            debug('invalid location "{}"'.format(location))
             location = ''
 
 def install_getaliases(known_index):
@@ -332,7 +341,7 @@ def edit_promptinstall(dotfile):
 def list(dotfiles):
     debug('listing dotfiles: {}'.format(dotfiles))
     if len(dotfiles) == 0:
-        os.system('printf "LOCATION,ALIASES...\n$(cat {})" | column -t -s ,'.format(INSTALLED_FILE))
+        os.system('cat "{}" | sed "s/,/\t/g"'.format(INSTALLED_FILE))
     else:
         data = ''
         for d in dotfiles:
