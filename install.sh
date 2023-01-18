@@ -26,5 +26,6 @@ elif [ "$1" = "-u" ]; then
 else
 	cp -v "$CURRDIR/src/$NAME.py" "$DESTBIN/$NAME"
 	chmod +x "$DESTBIN/$NAME"
+	chown root:wheel "$DESTBIN/$NAME"
 	cp -v "$CURRDIR/src/$NAME.1" "$DESTMAN"
 fi	
