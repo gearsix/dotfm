@@ -62,6 +62,8 @@ KNOWN = [ # dotfiles that dotfm knows by default
     ['{}/.emacs'.format(HOME), '.emacs', 'emacs'],
     ['{}/.sfeed/sfeedrc'.format(HOME), '.sfeedrc', 'sfeedrc'],
     ['{}/.config/txtnish/config'.format(HOME), 'txtnish', 'txtnish_config'],
+    ['{}/.config/micro/'.format(HOME), 'bindings.json', 'micro.bindings', 'micro.kbd'],
+    ['{}/.config/micro/'.format(HOME), 'settings.json', 'micro.settings', 'micro.cfg'],
 ]
 
 #-----------
