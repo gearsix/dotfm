@@ -5,7 +5,7 @@ set -e
 NAME="dotfm"
 CURRDIR=$(pwd)
 DESTBIN=/usr/local/bin
-DESTMAN=/usr/local/man/man1
+DESTMAN=/usr/local/share/man/man1
 
 mkdir -p $DESTBIN $DESTMAN
 
@@ -28,4 +28,5 @@ else
 	chmod +x "$DESTBIN/$NAME"
 	chown root:wheel "$DESTBIN/$NAME"
 	cp -v "$CURRDIR/src/$NAME.1" "$DESTMAN"
-fi	
+fi
+
